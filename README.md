@@ -23,3 +23,9 @@ AI-powered track day analytics platform
 - Implement cloud storage for user data
 - Add AI-powered coaching reports
 - Enable social sharing of lap times and analyses
+
+## Production source
+
+Production is the Vercel project mototrack-portal-v2, deployed by the Vercel CLI from `src/` (those files are served at the site root). This snapshot is from deployment `dpl_8hKXTLgBjtSNHDNWqVvpnGUPamtC` (Nov 12, 2026). The API is the Railway backend at https://mototrack-iq-backend-production.up.railway.app.
+
+The May 2026 prototype (`index.html`, `analysis.html`, and `package.json`) is kept in `legacy-may-2026/`.
