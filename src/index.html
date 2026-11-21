@@ -60,6 +60,16 @@
     .plan-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
     .plan-features { list-style: none; padding: 0; margin: 0 0 20px; text-align: left; font-size: 13px; color: var(--muted); flex: 1; }
     .plan-features li { padding: 5px 0; }
+    /* Membership grid: 4 columns desktop, 2 tablet, 1 mobile. The global
+       ".card + .card" margin pushed cards 2-4 down inside the grid; reset it. */
+    .plan-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; max-width: 1120px; margin: 0 auto; align-items: stretch; }
+    .plan-grid > .card + .card { margin-top: 0; }
+    .plan-grid .plan-card { padding: 24px 20px; }
+    .plan-grid .plan-card .btn { justify-content: center; }
+    .plan-card .plan-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg,#f97316,#ea580c); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+    .plan-price small { font-size: .85rem; font-weight: 600; color: var(--muted); margin-left: 2px; }
+    @media (max-width: 1024px) { .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px)  { .plan-grid { grid-template-columns: 1fr; } }
     .nav-spacer { flex: 1; }
     #authBtn { margin-left: 8px; position: relative; }
 
@@ -250,6 +260,7 @@
   <button class="nav-link" id="authBtn" onclick="showPage('auth')">Login</button>
   <div class="user-dropdown" id="userDropdown" style="display:none;">
     <a onclick="showPage('sessions'); closeUserDropdown();">My Sessions</a>
+    <a id="ddEditName" onclick="openEditName(); closeUserDropdown();">Edit name</a>
     <a onclick="showPage('membership'); closeUserDropdown();">Membership</a>
     <a onclick="openPromo(); closeUserDropdown();">Redeem Promo Code</a>
     <a id="ddResetPw" onclick="showPage('reset-pw'); closeUserDropdown();">Reset Password</a>
@@ -662,65 +673,66 @@
     <div style="text-align:center;max-width:640px;margin:0 auto 32px;">
       <div style="display:inline-block;background:linear-gradient(135deg,#f97316,#0ea5e9);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:14px;">🏁 Membership</div>
       <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:8px;">Choose how you ride with MotoTrackIQ</h2>
-      <p class="text-muted" style="font-size:14px;">Pick the option that fits your season. Pay-per-event for the occasional track day, or a package if you're out there all summer.</p>
-      <p style="font-size:12px;color:var(--muted);margin-top:8px;">Billing isn't live yet — selecting a plan registers your interest and we'll notify you the moment it opens.</p>
+      <p class="text-muted" style="font-size:14px;">Your first report is free. After that, buy a single report, an Event Pass for a full track day, or a Season Pass if you're out there all summer.</p>
+      <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices in Canadian dollars, before tax.</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:1000px;margin:0 auto;">
+    <div class="plan-grid">
 
       <div class="card plan-card" data-plan="free">
         <div class="plan-name">Free</div>
-        <div class="plan-price">$0</div>
-        <div class="plan-sub">Get started</div>
+        <div class="plan-price">CA$0</div>
+        <div class="plan-sub">Your first report on us</div>
         <ul class="plan-features">
-          <li>✓ 1 session analysis</li>
+          <li>✓ 1 full session report</li>
           <li>✓ Lap times &amp; top speed</li>
           <li>✓ Basic dashboard</li>
         </ul>
-        <button class="btn btn-secondary" style="width:100%;" onclick="selectPlan('free')">Select Free</button>
+        <button class="btn btn-secondary" style="width:100%;" onclick="selectPlan('free')">Start free</button>
       </div>
 
-      <div class="card plan-card" data-plan="per_event">
-        <div class="plan-name">Per Event</div>
-        <div class="plan-price">$<span>—</span></div>
-        <div class="plan-sub">Pay per track day</div>
+      <div class="card plan-card" data-plan="single">
+        <div class="plan-name">Single Report</div>
+        <div class="plan-price" data-price-for="single">CA$—</div>
+        <div class="plan-sub">One more session</div>
         <ul class="plan-features">
-          <li>✓ Full session analysis</li>
+          <li>✓ 1 report credit</li>
           <li>✓ Sector splits &amp; consistency</li>
           <li>✓ PDF report + email</li>
           <li>✓ No commitment</li>
         </ul>
-        <button class="btn btn-primary" style="width:100%;" onclick="selectPlan('per_event')">Select Per Event</button>
+        <button class="btn btn-secondary" style="width:100%;" data-checkout="single" onclick="buyPlan('single', this)">Buy Single Report</button>
+      </div>
+
+      <div class="card plan-card" data-plan="per_event">
+        <div class="plan-name">Event Pass</div>
+        <div class="plan-price" data-price-for="event">CA$—</div>
+        <div class="plan-sub">A full track day</div>
+        <ul class="plan-features">
+          <li>✓ 6 report credits</li>
+          <li>✓ Every session of the day</li>
+          <li>✓ Sector splits &amp; consistency</li>
+          <li>✓ PDF report + email</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;" data-checkout="event" onclick="buyPlan('event', this)">Buy Event Pass</button>
       </div>
 
       <div class="card plan-card featured" data-plan="season">
-        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:20px;">Best Value</div>
-        <div class="plan-name">Season Package</div>
-        <div class="plan-price">$<span>—</span></div>
+        <div class="plan-badge">Best value</div>
+        <div class="plan-name">Season Pass</div>
+        <div class="plan-price" data-price-for="season">CA$—</div>
         <div class="plan-sub">Unlimited all season</div>
         <ul class="plan-features">
-          <li>✓ Unlimited sessions</li>
-          <li>✓ Everything in Per Event</li>
+          <li>✓ Unlimited session reports</li>
+          <li>✓ Everything in Event Pass</li>
           <li>✓ Season-long progression</li>
           <li>✓ Priority support</li>
         </ul>
-        <button class="btn btn-primary" style="width:100%;" onclick="selectPlan('season')">Select Season</button>
-      </div>
-
-      <div class="card plan-card" data-plan="pro">
-        <div class="plan-name">Pro</div>
-        <div class="plan-price">$<span>—</span></div>
-        <div class="plan-sub">Deep coaching data</div>
-        <ul class="plan-features">
-          <li>✓ Everything in Season</li>
-          <li>✓ Corner-by-corner analysis</li>
-          <li>✓ Lean &amp; braking traces</li>
-          <li>✓ Track-map heat maps</li>
-        </ul>
-        <button class="btn btn-secondary" style="width:100%;" onclick="selectPlan('pro')">Select Pro</button>
+        <button class="btn btn-primary" style="width:100%;" data-checkout="season" onclick="buyPlan('season', this)">Buy Season Pass</button>
       </div>
 
     </div>
-    <div style="text-align:center;margin-top:28px;">
+    <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:20px;">Pro coaching tier (corner-by-corner, lean &amp; braking traces, heat maps) is coming soon.</p>
+    <div style="text-align:center;margin-top:16px;">
       <button class="btn btn-secondary" onclick="showPage('sessions')">Skip for now → Go to my sessions</button>
     </div>
   </div>
@@ -861,6 +873,20 @@
 </div>
 
 <!-- Review / Feedback Modal -->
+<div id="editNameOverlay" class="mtiq-modal-overlay" onclick="if(event.target===this)closeEditName()">
+  <div class="mtiq-modal" role="dialog" aria-labelledby="editNameTitle">
+    <button class="mtiq-modal-close" onclick="closeEditName()" aria-label="Close">&times;</button>
+    <h3 id="editNameTitle" style="font-size:1.2rem;font-weight:700;margin-bottom:6px;">Edit your name</h3>
+    <p class="text-muted" style="font-size:13px;margin-bottom:16px;">This is the name on your reports and emails.</p>
+    <label for="editFirstName" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">First name</label>
+    <input id="editFirstName" type="text" maxlength="60" autocomplete="given-name" style="width:100%;margin-bottom:12px;">
+    <label for="editLastName" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Last name</label>
+    <input id="editLastName" type="text" maxlength="60" autocomplete="family-name" style="width:100%;margin-bottom:16px;">
+    <button id="editNameBtn" class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveName()">Save</button>
+    <div id="editNameResult" style="font-size:13px;margin-top:10px;min-height:18px;"></div>
+  </div>
+</div>
+
 <div id="reviewOverlay" class="mtiq-modal-overlay" onclick="if(event.target===this)closeReview()">
   <div class="mtiq-modal">
     <button class="mtiq-modal-close" onclick="closeReview()" aria-label="Close">&times;</button>
@@ -1081,6 +1107,23 @@ function highlightSelectedPlan() {
   });
 }
 
+// Prices shown on the Membership page, keyed by backend checkout product.
+// Confirmed in Canadian dollars: Single Report CA$5.99, Event Pass CA$19.99,
+// Season Pass CA$89.99. Set a value to null to show "CA$—" for that product.
+const PLAN_PRICES = { single: 'CA$5.99', event: 'CA$19.99', season: 'CA$89.99' };
+const PLAN_PRICE_SUFFIX = { season: '/season' };
+
+function renderPlanPrices() {
+  document.querySelectorAll('[data-price-for]').forEach(el => {
+    const key = el.getAttribute('data-price-for');
+    const price = PLAN_PRICES[key];
+    el.textContent = price || 'CA$\u2014';
+    if (price && PLAN_PRICE_SUFFIX[key]) {
+      const sm = document.createElement('small'); sm.textContent = PLAN_PRICE_SUFFIX[key]; el.appendChild(sm);
+    }
+  });
+}
+
 async function selectPlan(plan) {
   if (!currentUser) { showPage('auth'); toast('Sign in to choose a plan', 'info'); return; }
   try {
@@ -1094,12 +1137,104 @@ async function selectPlan(plan) {
       return;
     }
     if (d.success) {
-      currentUser.plan = plan;
+      currentUser.plan = d.plan || plan;
       localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
       highlightSelectedPlan();
-      toast('Plan selected! We\u2019ll notify you when billing opens.', 'success');
+      if (plan === 'free') { showPage('sessions'); toast('You\u2019re on Free. Upload a session to get your report.', 'success'); }
+      else toast('Saved.', 'success');
     } else { toast(d.error || 'Could not save plan', 'error'); }
   } catch { toast('Cannot reach server', 'error'); }
+}
+
+// Where to send a rider right after sign-in. Set when they press Buy while
+// signed out so they come back to the plans instead of their sessions.
+function takeAfterLoginPage(fallback) {
+  const next = sessionStorage.getItem('mtiq_after_login');
+  sessionStorage.removeItem('mtiq_after_login');
+  return next === 'membership' ? 'membership' : fallback;
+}
+
+// Paid products go through the backend, which creates a hosted Lemon Squeezy
+// checkout for the signed-in rider (POST /api/checkout/:product -> { url }).
+// Backend products: single | event | season. There is no Pro product yet.
+const CHECKOUT_PRODUCTS = ['single', 'event', 'season'];
+async function buyPlan(product, btn) {
+  if (!CHECKOUT_PRODUCTS.includes(product)) { toast('That plan is not available yet.', 'info'); return; }
+  if (!currentUser || !authToken) {
+    sessionStorage.setItem('mtiq_after_login', 'membership');
+    showPage('auth'); switchTab('login');
+    toast('Sign in or create an account to buy', 'info');
+    return;
+  }
+  const label = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout\u2026'; }
+  try {
+    const r = await fetch(API + '/api/checkout/' + encodeURIComponent(product), {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401) { clearAuth(); showPage('auth'); toast('Your session expired. Sign in again to buy.', 'info'); return; }
+    if (r.ok && d.url && /^https:\/\//.test(d.url)) { window.location.href = d.url; return; }
+    if (r.status === 503) { toast(d.error || 'Payments are not configured yet. Check back soon.', 'info', 5000); return; }
+    toast(d.error || 'Could not start checkout. Please try again.', 'error');
+  } catch { toast('Cannot reach server', 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = label; } }
+}
+
+// Back from Lemon Squeezy (?checkout=success): refresh the rider so new credits
+// or the Season plan show up. The webhook can land a few seconds after the
+// redirect, so retry briefly.
+async function handleCheckoutReturn() {
+  window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+  toast('Payment received \u2014 thanks! Updating your account\u2026', 'success', 5000);
+  if (!authToken) return;
+  for (let i = 0; i < 4; i++) {
+    try {
+      const r = await fetch(API + '/api/auth/me', { headers: authHeaders() });
+      if (r.ok) {
+        const d = await r.json();
+        if (d.rider) { persistAuth(authToken, Object.assign({}, currentUser || {}, d.rider)); }
+      }
+    } catch {}
+    await new Promise(res => setTimeout(res, 2500));
+  }
+  showPage('sessions');
+}
+
+// ── Edit name ─────────────────────────────────────────────────────────────
+// Sends only firstName/lastName. Needs the backend whose PUT /api/auth/profile
+// updates only the fields it is sent (older builds blanked the rest).
+function openEditName() {
+  if (!currentUser) { showPage('auth'); toast('Sign in to edit your name', 'info'); return; }
+  document.getElementById('editFirstName').value = currentUser.firstName || '';
+  document.getElementById('editLastName').value = currentUser.lastName || '';
+  document.getElementById('editNameResult').textContent = '';
+  document.getElementById('editNameOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('editFirstName').focus(), 50);
+}
+function closeEditName() { document.getElementById('editNameOverlay').classList.remove('open'); }
+
+async function saveName() {
+  const first = document.getElementById('editFirstName').value.trim();
+  const last = document.getElementById('editLastName').value.trim();
+  const out = document.getElementById('editNameResult');
+  const btn = document.getElementById('editNameBtn');
+  if (!first) { out.style.color = '#ef4444'; out.textContent = 'First name can\u2019t be empty.'; return; }
+  btn.disabled = true; btn.textContent = 'Saving\u2026'; out.textContent = '';
+  try {
+    const r = await fetch(API + '/api/auth/profile', {
+      method: 'PUT', headers: authHeaders(),
+      body: JSON.stringify({ firstName: first, lastName: last })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401) { clearAuth(); closeEditName(); showPage('auth'); toast('Your session expired. Sign in again.', 'info'); return; }
+    if (!r.ok || !d.rider) { out.style.color = '#ef4444'; out.textContent = d.error || 'Could not save your name.'; return; }
+    persistAuth(authToken, Object.assign({}, currentUser || {}, d.rider));
+    closeEditName();
+    toast('Name updated', 'success');
+  } catch {
+    out.style.color = '#ef4444'; out.textContent = 'Couldn\u2019t reach the server. Try again.';
+  } finally { btn.disabled = false; btn.textContent = 'Save'; }
 }
 
 // ── Demo data ────────────────────────────────────────────────────────────────
@@ -1210,7 +1345,7 @@ async function doLogin() {
   try {
     const r = await fetch(API + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, ...check }) });
     const d = await r.json();
-    if (d.success) { persistAuth(d.token, d.rider); showPage('sessions'); toast('Welcome back, ' + d.rider.firstName + '!'); }
+    if (d.success) { persistAuth(d.token, d.rider); showPage(takeAfterLoginPage('sessions')); toast('Welcome back, ' + d.rider.firstName + '!'); }
     else if (d.needsVerification) {
       _pendingEmail = email;
       document.getElementById('checkEmailAddr').textContent = email;
@@ -1304,8 +1439,8 @@ async function doSetPassword() {
     if (d.success) {
       persistAuth(d.token, d.rider);
       cleanAuthUrl();
-      showPage('membership');
-      toast('Account activated! Welcome, ' + d.rider.firstName + '!', 'success');
+      showPage('sessions');
+      toast('Account activated! Welcome, ' + d.rider.firstName + '! Upload a session to get your free report.', 'success', 5000);
     } else { toast(d.error || 'Could not set password', 'error'); }
   } catch { toast('Cannot reach server', 'error'); }
 }
@@ -1615,10 +1750,12 @@ async function handleOAuthReturn(params) {
     }
     persistAuth(d.token, d.rider);
     if (d.isNew) {
-      showPage('membership');
-      toast('Welcome, ' + (d.rider.firstName || 'rider') + '. Pick a plan when you are ready.', 'success');
-    } else {
+      // New riders start on their sessions with one free report credit.
+      // Plans stay one click away in the account menu (Membership).
       showPage('sessions');
+      toast('Welcome, ' + (d.rider.firstName || 'rider') + '! Upload a session to get your free report.', 'success', 5000);
+    } else {
+      showPage(takeAfterLoginPage('sessions'));
       toast('Welcome back, ' + (d.rider.firstName || 'rider') + '!', 'success');
     }
   } catch (err) {
@@ -1631,6 +1768,10 @@ function checkUrlReset() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('oauth_code') || params.get('oauth_error')) {
     handleOAuthReturn(params);
+    return;
+  }
+  if (params.get('checkout') === 'success') {
+    handleCheckoutReturn();
     return;
   }
 
@@ -2617,6 +2758,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateNav();
   loadBetaCount();
   loadOAuthProviders();
+  renderPlanPrices();
   checkUrlReset();
 });
 </script>
