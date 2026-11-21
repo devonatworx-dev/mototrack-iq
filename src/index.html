@@ -674,13 +674,13 @@
       <div style="display:inline-block;background:linear-gradient(135deg,#f97316,#0ea5e9);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:14px;">🏁 Membership</div>
       <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:8px;">Choose how you ride with MotoTrackIQ</h2>
       <p class="text-muted" style="font-size:14px;">Your first report is free. After that, buy a single report, an Event Pass for a full track day, or a Season Pass if you're out there all summer.</p>
-      <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices shown before tax.</p>
+      <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices in Canadian dollars, before tax.</p>
     </div>
     <div class="plan-grid">
 
       <div class="card plan-card" data-plan="free">
         <div class="plan-name">Free</div>
-        <div class="plan-price">$0</div>
+        <div class="plan-price">CA$0</div>
         <div class="plan-sub">Your first report on us</div>
         <ul class="plan-features">
           <li>✓ 1 full session report</li>
@@ -692,7 +692,7 @@
 
       <div class="card plan-card" data-plan="single">
         <div class="plan-name">Single Report</div>
-        <div class="plan-price" data-price-for="single">$—</div>
+        <div class="plan-price" data-price-for="single">CA$—</div>
         <div class="plan-sub">One more session</div>
         <ul class="plan-features">
           <li>✓ 1 report credit</li>
@@ -705,7 +705,7 @@
 
       <div class="card plan-card" data-plan="per_event">
         <div class="plan-name">Event Pass</div>
-        <div class="plan-price" data-price-for="event">$—</div>
+        <div class="plan-price" data-price-for="event">CA$—</div>
         <div class="plan-sub">A full track day</div>
         <ul class="plan-features">
           <li>✓ 6 report credits</li>
@@ -719,7 +719,7 @@
       <div class="card plan-card featured" data-plan="season">
         <div class="plan-badge">Best value</div>
         <div class="plan-name">Season Pass</div>
-        <div class="plan-price" data-price-for="season">$—</div>
+        <div class="plan-price" data-price-for="season">CA$—</div>
         <div class="plan-sub">Unlimited all season</div>
         <ul class="plan-features">
           <li>✓ Unlimited session reports</li>
@@ -1108,18 +1108,16 @@ function highlightSelectedPlan() {
 }
 
 // Prices shown on the Membership page, keyed by backend checkout product.
-// SOURCE: comments in mototrack-iq-backend lib/lemonsqueezy.js
-//   (Single Report $5.99, Event Pass $19.99, Season Pass $89.99).
-// [CONFIRM] against the live Lemon Squeezy products (amount AND currency)
-// before this ships. Set a value to null to show "$—" for that product.
-const PLAN_PRICES = { single: '$5.99', event: '$19.99', season: '$89.99' };
+// Confirmed in Canadian dollars: Single Report CA$5.99, Event Pass CA$19.99,
+// Season Pass CA$89.99. Set a value to null to show "CA$—" for that product.
+const PLAN_PRICES = { single: 'CA$5.99', event: 'CA$19.99', season: 'CA$89.99' };
 const PLAN_PRICE_SUFFIX = { season: '/season' };
 
 function renderPlanPrices() {
   document.querySelectorAll('[data-price-for]').forEach(el => {
     const key = el.getAttribute('data-price-for');
     const price = PLAN_PRICES[key];
-    el.textContent = price || '$\u2014';
+    el.textContent = price || 'CA$\u2014';
     if (price && PLAN_PRICE_SUFFIX[key]) {
       const sm = document.createElement('small'); sm.textContent = PLAN_PRICE_SUFFIX[key]; el.appendChild(sm);
     }
