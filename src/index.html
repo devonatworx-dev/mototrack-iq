@@ -20,6 +20,14 @@
     .brand-gradient { background: linear-gradient(135deg, #f97316 0%, #ea580c 30%, #0ea5e9 70%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .brand-gradient-bg { background: linear-gradient(135deg, #f97316, #38bdf8); }
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px; }
+    .oauth-stack { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .oauth-btn { width: 100%; text-decoration: none; text-align: center; }
+    .oauth-note { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 8px 0 12px; }
+    .oauth-or { text-align: center; color: #555; font-size: 12px; margin: 12px 0; }
+    .turnstile-slot { margin: 0 0 14px; min-height: 0; }
+    .consent-check { display: flex; align-items: flex-start; gap: 10px; margin: 8px 0; font-size: 12px; line-height: 1.5; color: var(--muted); cursor: pointer; font-weight: 400; }
+    .consent-check input { width: 16px; height: 16px; margin-top: 2px; flex: 0 0 auto; padding: 0; }
+    .consent-check span { min-width: 0; }
 
     /* ── Nav ── */
     nav {
@@ -237,7 +245,7 @@
 <nav>
   <a class="nav-logo" href="#" onclick="showPage('home')"><img src="./logo.png" alt="MotoTrackIQ"></a>
   <button class="nav-link" id="navDemo" onclick="showPage('demo')">🎬 Demo</button>
-  <button class="nav-link accent" id="navBeta" onclick="showPage('beta')">Beta 🚀</button>
+  <button class="nav-link accent" id="navBeta" onclick="showPage('auth'); switchTab('register')">Sign up</button>
   <div class="nav-spacer"></div>
   <button class="nav-link" id="authBtn" onclick="showPage('auth')">Login</button>
   <div class="user-dropdown" id="userDropdown" style="display:none;">
@@ -255,11 +263,11 @@
 <div class="page active" id="page-home">
   <div class="hero">
     <img class="hero-logo" src="./logo.png" alt="MotoTrackIQ">
-    <div class="beta-badge">🏆 Beta — Join the Waitlist</div>
+    <div class="beta-badge">Open signup · Ontario riders</div>
     <h1>AI-Powered<br><span>Track Day Analytics</span></h1>
     <p>Upload your raw session data in CSV format (RaceBox or any compatible lap timer). Get professional lap reports, speed traces, and AI coaching insights — built for riders who want to go faster.</p>
     <div class="hero-actions">
-      <button class="btn btn-primary" style="font-size:1rem; padding:16px 32px;" onclick="showPage('beta')">🚀 Join the Waitlist</button>
+      <button class="btn btn-primary" style="font-size:1rem; padding:16px 32px;" onclick="showPage('auth'); switchTab('register')">Create your account</button>
       <button class="btn btn-secondary" style="font-size:1rem; padding:16px 32px;" onclick="showPage('demo')">🎬 See Demo</button>
     </div>
   </div>
@@ -432,7 +440,7 @@
       <h2 style="font-size:2rem; font-weight:800; margin:14px 0 10px;">See What You'll Get</h2>
       <p class="text-muted" style="font-size:1rem; max-width:560px; margin:0 auto 6px;">A real race session — <strong style="color:#e2e8f0;">VRRA Round 2, Calabogie Motorsports Park</strong>, SV650. Every number below came straight out of a RaceBox CSV. This is exactly what lands in your dashboard after you upload.</p>
       <p style="font-size:12px; color:var(--muted); max-width:560px; margin:0 auto;">5.05&nbsp;km circuit · 20 corners · afternoon race session</p>
-      <button class="btn btn-primary" style="margin-top:18px;" onclick="showPage('beta')">🚀 Join Waitlist to Get Access</button>
+      <button class="btn btn-primary" style="margin-top:18px;" onclick="showPage('auth'); switchTab('register')">Create your account</button>
     </div>
 
     <!-- Stats -->
@@ -495,7 +503,7 @@
 
     <div style="text-align:center; padding-bottom:50px;">
       <p class="text-muted" style="margin-bottom:18px;">Ready to analyse your own sessions?</p>
-      <button class="btn btn-primary" style="font-size:1rem; padding:14px 32px;" onclick="showPage('beta')">🚀 Join the Waitlist</button>
+      <button class="btn btn-primary" style="font-size:1rem; padding:14px 32px;" onclick="showPage('auth'); switchTab('register')">Create your account</button>
       <span style="margin:0 12px; color:var(--muted);">or</span>
       <button class="btn btn-secondary" style="font-size:1rem; padding:14px 32px;" onclick="showPage('auth')">Sign In</button>
     </div>
@@ -508,22 +516,20 @@
     <div class="auth-card">
       <div class="auth-tabs">
         <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
-        <!-- Create Account hidden during waitlist-only phase -->
-        <button class="auth-tab" id="tabRegister" onclick="switchTab('register')" style="display:none;">Create Account</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Create Account</button>
       </div>
       <div class="auth-body">
         <!-- Login -->
         <div class="auth-form active" id="formLogin">
+          <div id="oauth-login" class="oauth-stack"></div>
+          <p class="oauth-note">Existing account? Use the same email you already registered. New riders use Create Account so Ontario residency and email consent are recorded.</p>
+          <div class="oauth-or">or use email</div>
           <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
           <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Your password"></div>
           <a href="#" onclick="showForgotPassword(); return false;" style="display:block;text-align:right;font-size:12px;color:var(--muted);margin-top:-10px;margin-bottom:16px;text-decoration:none;">Forgot password?</a>
-          <div class="captcha-row">
-            <span>🔐 <span id="captchaQ">?</span></span>
-            <input type="text" id="captchaA" placeholder="Answer" maxlength="3" style="width:80px;" onkeydown="if(event.key==='Enter')doLogin()">
-            <button onclick="refreshCaptcha()">🔄</button>
-          </div>
+          <div id="turnstile-login" class="turnstile-slot"></div>
           <button class="btn btn-primary" style="width:100%;" onclick="doLogin()">Sign In</button>
-          <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:18px;">Not a member yet? <a href="#" onclick="showPage('beta'); return false;" style="color:var(--accent);font-weight:600;text-decoration:none;">Join the waitlist →</a></p>
+          <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:18px;">Not a member yet? <a href="#" onclick="switchTab('register'); return false;" style="color:var(--accent);font-weight:600;text-decoration:none;">Create an account →</a></p>
         </div>
         <!-- Forgot Password -->
         <div class="auth-form" id="formForgot">
@@ -533,6 +539,7 @@
             <p style="color:var(--muted);font-size:13px;">Enter your email and we'll send you a reset link.</p>
           </div>
           <div class="form-group"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@example.com"></div>
+          <div id="turnstile-forgot" class="turnstile-slot"></div>
           <button class="btn btn-primary" style="width:100%;margin-bottom:12px;" onclick="doForgotPassword()">Send Reset Link</button>
           <button class="btn btn-secondary" style="width:100%;" onclick="switchTab('login')">Back to Sign In</button>
         </div>
@@ -550,6 +557,8 @@
         </div>
         <!-- Register -->
         <div class="auth-form" id="formRegister">
+          <div id="oauth-register" class="oauth-stack"></div>
+          <div class="oauth-or">or use email</div>
           <div class="form-row">
             <div class="form-group"><label>First Name</label><input type="text" id="regFirst" placeholder="First name"></div>
             <div class="form-group"><label>Last Name</label><input type="text" id="regLast" placeholder="Last name"></div>
@@ -577,15 +586,15 @@
             </div>
           </div>
           <div class="form-group"><label>Primary Track</label><input type="text" id="regTrack" placeholder="e.g. CTMP Shannonville"></div>
-          <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);margin:6px 0 16px;line-height:1.5;cursor:pointer;">
-            <input type="checkbox" id="regConsent" style="margin-top:2px;flex-shrink:0;">
-            <span>I agree to receive account &amp; product emails from MotoTrackIQ. We'll send a confirmation link to verify your address. You can unsubscribe anytime.</span>
+          <label class="consent-check">
+            <input type="checkbox" id="regOntario">
+            <span>I live in Ontario, Canada. MotoTrackIQ currently serves Ontario residents only.</span>
           </label>
-          <div class="captcha-row">
-            <span>🔐 <span id="captchaQR">?</span></span>
-            <input type="text" id="captchaAR" placeholder="Answer" maxlength="3" style="width:80px;">
-            <button onclick="refreshCaptchaReg()">🔄</button>
-          </div>
+          <label class="consent-check">
+            <input type="checkbox" id="regConsent">
+            <span>I agree to receive account and product emails from MotoTrackIQ. We'll send a confirmation link to verify your address. You can unsubscribe anytime.</span>
+          </label>
+          <div id="turnstile-register" class="turnstile-slot"></div>
           <button class="btn btn-primary" style="width:100%;" onclick="doRegister()">Send Confirmation Email →</button>
           <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;">You'll set your password after confirming your email.</p>
         </div>
@@ -597,6 +606,7 @@
             <p style="color:var(--muted);font-size:13px;">We sent a confirmation link to <strong id="checkEmailAddr" style="color:var(--text);"></strong>. Click it to activate your account and set your password.</p>
           </div>
           <p style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:16px;">Didn't get it? Check spam, or resend below.</p>
+          <div id="turnstile-resend" class="turnstile-slot"></div>
           <button class="btn btn-secondary" style="width:100%;margin-bottom:12px;" onclick="doResendVerification()">Resend confirmation email</button>
           <button class="btn btn-secondary" style="width:100%;" onclick="switchTab('login')">Back to Sign In</button>
         </div>
@@ -754,11 +764,6 @@
           <option value="other">Other</option>
         </select>
       </div>
-      <div class="captcha-row">
-        <span>🔐 <span id="captchaQB">?</span></span>
-        <input type="text" id="captchaAB" placeholder="Answer" maxlength="3" style="width:80px;">
-        <button onclick="refreshCaptchaBeta()">🔄</button>
-      </div>
       <label style="display:flex; gap:10px; align-items:center; cursor:pointer; margin-bottom:20px;">
         <input type="checkbox" id="betaConsent" style="width:auto; margin:0;">
         <span style="font-size:13px; color:var(--muted);">I agree to receive email updates from MotoTrackIQ. We'll send a confirmation link — <strong style="color:var(--text);">by verifying, you consent to receive communication</strong>. You can unsubscribe anytime.</span>
@@ -890,7 +895,7 @@
 <script src="config.js"></script>
 <script>
 // ── Config ─────────────────────────────────────────────────────────────────
-// API base resolved in config.js (env/meta/origin-aware). No hardcoded IPs.
+// API base resolved in config.js. Production and *.vercel.app previews use the Railway API unless overridden.
 const API = window.MTIQ_API_BASE;
 
 // ── Compatibility facade ───────────────────────────────────────────────────
@@ -1019,7 +1024,7 @@ function updateNav() {
     btn.textContent = '👤 ' + currentUser.firstName + ' ▾';
     btn.onclick = toggleUserDropdown;
     if (dropdown) dropdown.style.display = 'none';
-    // Logged-in members don't need the Demo / Beta-waitlist entry points.
+    // Logged-in members don't need the Demo / Sign up entry points.
     if (navDemo) navDemo.style.display = 'none';
     if (navBeta) navBeta.style.display = 'none';
   } else {
@@ -1120,11 +1125,60 @@ function initDemo() {
   demoChart = new Chart(document.getElementById('demoChart').getContext('2d'), buildSpeedChart(DEMO_LAPS));
 }
 
-// ── CAPTCHA ──────────────────────────────────────────────────────────────────
-let _ca, _cr, _cb;
-function refreshCaptcha()    { let a=~~(Math.random()*10)+1, b=~~(Math.random()*10)+1; _ca=a+b; document.getElementById('captchaQ').textContent=`${a} + ${b} = ?`; document.getElementById('captchaA').value=''; }
-function refreshCaptchaReg() { let a=~~(Math.random()*10)+1, b=~~(Math.random()*10)+1; _cr=a+b; document.getElementById('captchaQR').textContent=`${a} + ${b} = ?`; document.getElementById('captchaAR').value=''; }
-function refreshCaptchaBeta(){ let a=~~(Math.random()*10)+1, b=~~(Math.random()*10)+1; _cb=a+b; document.getElementById('captchaQB').textContent=`${a} + ${b} = ?`; document.getElementById('captchaAB').value=''; }
+// ── Cloudflare Turnstile (email forms only; social buttons do not use it) ──
+let turnstileConfig = { enabled: false, siteKey: null };
+const turnstileWidgets = {};
+
+function loadTurnstileScript() {
+  if (window.turnstile) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Turnstile failed to load'));
+    document.head.appendChild(s);
+  });
+}
+
+function renderTurnstile(slotId) {
+  if (!turnstileConfig.enabled || !turnstileConfig.siteKey || turnstileWidgets[slotId] != null) return;
+  const el = document.getElementById(slotId);
+  if (!el || !window.turnstile) return;
+  turnstileWidgets[slotId] = window.turnstile.render(el, {
+    sitekey: turnstileConfig.siteKey,
+    appearance: 'interaction-only',
+    theme: 'dark',
+  });
+}
+
+async function setupTurnstile(cfg) {
+  turnstileConfig = cfg && cfg.enabled && cfg.siteKey ? cfg : { enabled: false, siteKey: null };
+  if (!turnstileConfig.enabled) return;
+  try {
+    await loadTurnstileScript();
+    ['turnstile-login', 'turnstile-register', 'turnstile-forgot', 'turnstile-resend'].forEach(renderTurnstile);
+  } catch (err) {
+    console.error('[turnstile]', err);
+    turnstileConfig = { enabled: false, siteKey: null };
+  }
+}
+
+function turnstileFields(slotId) {
+  if (!turnstileConfig.enabled) return {};
+  const id = turnstileWidgets[slotId];
+  const token = id != null && window.turnstile ? window.turnstile.getResponse(id) : '';
+  if (!token) {
+    toast('Complete the security check, then try again.', 'error');
+    return null;
+  }
+  return { turnstileToken: token };
+}
+
+function resetTurnstile(slotId) {
+  const id = turnstileWidgets[slotId];
+  if (id != null && window.turnstile) window.turnstile.reset(id);
+}
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 function hideAllAuthForms() {
@@ -1150,10 +1204,11 @@ async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   if (!email || !password) { toast('Enter email and password', 'error'); return; }
-  if (parseInt(document.getElementById('captchaA').value) !== _ca) { toast('CAPTCHA wrong', 'error'); refreshCaptcha(); return; }
+  const check = turnstileFields('turnstile-login');
+  if (!check) return;
 
   try {
-    const r = await fetch(API + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const r = await fetch(API + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, ...check }) });
     const d = await r.json();
     if (d.success) { persistAuth(d.token, d.rider); showPage('sessions'); toast('Welcome back, ' + d.rider.firstName + '!'); }
     else if (d.needsVerification) {
@@ -1162,7 +1217,7 @@ async function doLogin() {
       showAuthForm('formCheckEmail');
       toast('Please confirm your email first', 'info');
     }
-    else { toast(d.error || 'Login failed', 'error'); refreshCaptcha(); }
+    else { toast(d.error || 'Login failed', 'error'); resetTurnstile('turnstile-login'); }
   } catch { toast('Cannot reach server', 'error'); }
 }
 
@@ -1171,8 +1226,10 @@ async function doRegister() {
   const last  = document.getElementById('regLast').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   if (!first || !last || !email) { toast('Name and email are required', 'error'); return; }
+  if (!document.getElementById('regOntario').checked) { toast('MotoTrackIQ is currently available only to Ontario residents.', 'error'); return; }
   if (!document.getElementById('regConsent').checked) { toast('Please agree to receive confirmation & product emails', 'error'); return; }
-  if (parseInt(document.getElementById('captchaAR').value) !== _cr) { toast('CAPTCHA wrong', 'error'); refreshCaptchaReg(); return; }
+  const check = turnstileFields('turnstile-register');
+  if (!check) return;
 
   try {
     const pwd = document.getElementById('regPassword').value;
@@ -1181,7 +1238,9 @@ async function doRegister() {
       phone: document.getElementById('regPhone').value,
       experience: document.getElementById('regExp').value,
       riderType: document.getElementById('regType').value,
-      primaryTrack: document.getElementById('regTrack').value
+      primaryTrack: document.getElementById('regTrack').value,
+      ontarioResident: true,
+      ...check
     };
     // The current backend creates a PENDING account and emails a verification
     // link; the legacy backend requires a password up front. Send the password
@@ -1205,17 +1264,19 @@ async function doRegister() {
     } else if (!pwd && /password/i.test(d.error || '')) {
       toast('This server needs a password to create your account — please set one and try again.', 'info', 6000);
       document.getElementById('regPassword').focus();
-    } else { toast(d.error || 'Registration failed', 'error'); refreshCaptchaReg(); }
+    } else { toast(d.error || 'Registration failed', 'error'); resetTurnstile('turnstile-register'); }
   } catch { toast('Cannot reach server', 'error'); }
 }
 
 async function doResendVerification() {
   const email = _pendingEmail || document.getElementById('checkEmailAddr').textContent;
   if (!email) { toast('No email to resend to', 'error'); return; }
+  const check = turnstileFields('turnstile-resend');
+  if (!check) return;
   try {
     const r = await fetch(API + '/api/auth/resend-verification', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, ...check })
     });
     if (r.status === 404) {
       toast('This server signs accounts up instantly — try signing in instead.', 'info', 5000);
@@ -1223,6 +1284,7 @@ async function doResendVerification() {
       return;
     }
     toast('Confirmation email sent — check your inbox', 'success');
+    resetTurnstile('turnstile-resend');
   } catch { toast('Cannot reach server', 'error'); }
 }
 
@@ -1257,17 +1319,19 @@ function showForgotPassword() {
 async function doForgotPassword() {
   const email = document.getElementById('forgotEmail').value.trim();
   if (!email) { toast('Enter your email address', 'error'); return; }
+  const check = turnstileFields('turnstile-forgot');
+  if (!check) return;
   try {
     const r = await fetch(API + '/api/auth/forgot-password', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, ...check })
     });
     const d = await r.json();
     if (d.success) {
       toast('Check your email for a reset link', 'success');
       // Clear and go back to login after 2s
       setTimeout(() => { document.getElementById('forgotEmail').value = ''; switchTab('login'); }, 2000);
-    } else { toast(d.error || 'Request failed', 'error'); }
+    } else { toast(d.error || 'Request failed', 'error'); resetTurnstile('turnstile-forgot'); }
   } catch { toast('Cannot reach server', 'error'); }
 }
 
@@ -1454,8 +1518,121 @@ async function doBetaResend() {
   } catch { toast('Cannot reach server', 'error'); }
 }
 
+const OAUTH_ERRORS = {
+  missing_email: 'That provider did not share an email address, so no account was created.',
+  email_unverified: 'That email was not verified by the provider, so it was not linked to an existing account.',
+  consent_required: 'New accounts need the email-consent checkbox. Switch to Create Account, tick both boxes, then try the provider again.',
+  ontario_required: 'MotoTrackIQ currently serves Ontario residents. Tick that box on Create Account, then try again.',
+  access_denied: 'Sign-in was cancelled. Nothing was changed.',
+  provider_disabled: 'That provider is not available yet.',
+  oauth_failed: 'Sign-in could not be completed. Try again.',
+  oauth_not_configured: 'That provider is not configured on the server yet.',
+  code_expired: 'That sign-in link expired. Try the provider again.'
+};
+
+function oauthButton(provider, label) {
+  const a = document.createElement('a');
+  a.className = 'btn btn-secondary oauth-btn';
+  a.href = (API || '') + '/api/auth/oauth/' + provider + '/start';
+  a.dataset.provider = provider;
+  a.textContent = 'Continue with ' + label;
+  a.addEventListener('click', (event) => startOAuth(event, provider));
+  return a;
+}
+
+async function loadOAuthProviders() {
+  const login = document.getElementById('oauth-login');
+  const register = document.getElementById('oauth-register');
+  if (!login || !register) return;
+  let providers = ['google', 'microsoft'];
+  try {
+    const r = await fetch((API || '') + '/api/auth/oauth/providers');
+    const d = await r.json();
+    if (Array.isArray(d.providers) && d.providers.length) providers = d.providers;
+    setupTurnstile(d.turnstile);
+  } catch (err) {
+    console.error('[oauth] provider list failed', err);
+  }
+  const labels = { google: 'Google', microsoft: 'Microsoft', facebook: 'Facebook' };
+  login.replaceChildren();
+  register.replaceChildren();
+  providers.forEach((provider) => {
+    const label = labels[provider] || provider;
+    const signIn = oauthButton(provider, label);
+    signIn.id = 'oauth-' + provider;
+    login.appendChild(signIn);
+    const signUp = oauthButton(provider, label);
+    signUp.id = 'oauth-' + provider + '-register';
+    register.appendChild(signUp);
+  });
+}
+
+function startOAuth(event, provider) {
+  const onRegister = document.getElementById('formRegister').classList.contains('active');
+  if (!onRegister) return true;
+  if (!document.getElementById('regOntario').checked) {
+    event.preventDefault();
+    toast('Confirm Ontario residency before using a provider.', 'error');
+    return false;
+  }
+  if (!document.getElementById('regConsent').checked) {
+    event.preventDefault();
+    toast('Agree to account and product emails before using a provider.', 'error');
+    return false;
+  }
+  const url = new URL((API || '') + '/api/auth/oauth/' + provider + '/start', window.location.origin);
+  url.searchParams.set('ontario', '1');
+  url.searchParams.set('consent', '1');
+  event.preventDefault();
+  window.location.href = url.toString();
+  return false;
+}
+
+async function handleOAuthReturn(params) {
+  const error = params.get('oauth_error');
+  const code = params.get('oauth_code');
+  window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+  if (error) {
+    showPage('auth');
+    if (error === 'consent_required' || error === 'ontario_required') switchTab('register');
+    else switchTab('login');
+    toast(OAUTH_ERRORS[error] || OAUTH_ERRORS.oauth_failed, 'error', 6000);
+    return;
+  }
+  if (!code) return;
+  try {
+    const r = await fetch((API || '') + '/api/auth/oauth/exchange', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) {
+      showPage('auth');
+      switchTab('login');
+      toast(d.error || OAUTH_ERRORS.code_expired, 'error');
+      return;
+    }
+    persistAuth(d.token, d.rider);
+    if (d.isNew) {
+      showPage('membership');
+      toast('Welcome, ' + (d.rider.firstName || 'rider') + '. Pick a plan when you are ready.', 'success');
+    } else {
+      showPage('sessions');
+      toast('Welcome back, ' + (d.rider.firstName || 'rider') + '!', 'success');
+    }
+  } catch (err) {
+    showPage('auth');
+    toast('Cannot reach server', 'error');
+  }
+}
+
 function checkUrlReset() {
   const params = new URLSearchParams(window.location.search);
+  if (params.get('oauth_code') || params.get('oauth_error')) {
+    handleOAuthReturn(params);
+    return;
+  }
 
   // Deep link straight to the sign-in screen.
   //
@@ -2173,7 +2350,6 @@ async function submitBeta() {
   const consent = document.getElementById('betaConsent').checked;
   if (!first || !last || !email) { toast('Name and email are required', 'error'); return; }
   if (!consent) { toast('Please accept the consent checkbox', 'error'); return; }
-  if (parseInt(document.getElementById('captchaAB').value) !== _cb) { toast('CAPTCHA wrong', 'error'); refreshCaptchaBeta(); return; }
 
   try {
     const r = await fetch(API + '/api/beta-signup', {
@@ -2439,10 +2615,8 @@ function formatTime(sec) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   updateNav();
-  refreshCaptcha();
-  refreshCaptchaReg();
-  refreshCaptchaBeta();
   loadBetaCount();
+  loadOAuthProviders();
   checkUrlReset();
 });
 </script>

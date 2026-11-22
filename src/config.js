@@ -2,23 +2,32 @@
 // Single source of truth for the backend API base URL.
 //
 // Resolution order:
-//   1. window.MTIQ_API_BASE  (set via injected env / build step)
-//   2. <meta name="mtiq-api-base" content="...">  (set in HTML head)
-//   3. Same-origin (''), which works when the portal is served by the backend
-//      itself, or when a reverse proxy maps /api to the backend.
-//   4. Production fallback: the Railway backend URL.
+//   1. window.MTIQ_API_BASE, when it is already a string before this file runs.
+//      An empty string means same-origin /api (only for a portal served by the API).
+//   2. <meta name="mtiq-api-base" content="..."> when the content is non-empty.
+//   3. The production Railway API.
 //
-// To point at a different backend, set ONE of the above. Do NOT hardcode
-// machine-specific IPs in the page scripts anymore.
+// mototrackiq.com, www.mototrackiq.com, and *.vercel.app preview deployments
+// are static files with no /api of their own. Step 3 is what they use, so a
+// preview calls production instead of its own host. Point a preview at another
+// API with the meta tag or window.MTIQ_API_BASE. Do NOT hardcode machine IPs.
 
 (function () {
   var meta = document.querySelector('meta[name="mtiq-api-base"]');
   var fromMeta = meta && meta.getAttribute('content');
+  var injected = (typeof window !== 'undefined' && typeof window.MTIQ_API_BASE === 'string')
+    ? window.MTIQ_API_BASE
+    : null;
 
-  var base =
-    (typeof window !== 'undefined' && window.MTIQ_API_BASE) ||
-    (fromMeta && fromMeta.trim()) ||
-    'https://mototrack-iq-backend-production.up.railway.app';
+  var base;
+  if (injected !== null) {
+    base = injected.trim();
+  } else if (fromMeta && String(fromMeta).trim()) {
+    base = String(fromMeta).trim();
+  } else {
+    // Static hosts (production site and Vercel previews) share this default.
+    base = 'https://mototrack-iq-backend-production.up.railway.app';
+  }
 
   // Normalize: strip trailing slash so callers can do API + '/api/...'
   base = String(base).replace(/\/+$/, '');
