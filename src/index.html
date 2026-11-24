@@ -202,21 +202,11 @@
     .captcha-row input { flex: 1; background: var(--bg); }
     .captcha-row button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; }
 
-    /* ── Beta ── */
-    .beta-hero { text-align: center; padding: 60px 24px 40px; }
-    .beta-hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
-    .beta-hero p { color: var(--muted); font-size: 1rem; max-width: 520px; margin: 0 auto 10px; }
-    .beta-count { font-size: 1.1rem; font-weight: 700; color: var(--accent2); margin-top: 10px; }
-
     /* ── Admin ── */
     #adminModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 1000; overflow-y: auto; }
     #adminModal.open { display: flex; align-items: flex-start; justify-content: center; padding: 40px 20px; }
     .admin-panel { background: var(--card); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 900px; padding: 36px; }
     .admin-close { float: right; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 24px 0; }
-    .stat-card { background: var(--card2); border-radius: 10px; padding: 16px; }
-    .stat-card .num { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #f97316, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
     .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
     .admin-table th { padding: 10px 12px; text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .8px; border-bottom: 1px solid var(--border); }
     .admin-table td { padding: 10px 12px; border-bottom: 1px solid rgba(55,65,81,.4); }
@@ -243,7 +233,7 @@
       .hero-logo { width: 300px; margin-bottom: 18px; }
       .nav-logo img { height: 38px; }
       .feature-grid, .steps { grid-template-columns: 1fr; }
-      .stat-grid, .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
       .form-row { grid-template-columns: 1fr; }
       .detail-header { flex-direction: column; }
     }
@@ -738,64 +728,6 @@
   </div>
 </div>
 
-<!-- ── BETA PAGE ── -->
-<div class="page" id="page-beta">
-  <div class="beta-hero">
-    <div class="beta-badge">🏁 Early Access</div>
-    <h1>Join the Beta Waitlist</h1>
-    <p>Be first to access MotoTrackIQ when we launch. Free analysis for the first 25 riders.</p>
-    <p class="beta-count" id="betaCount"></p>
-  </div>
-  <div class="container">
-    <div class="card" style="max-width:560px; margin:0 auto;" id="betaFormCard">
-      <div class="form-row">
-        <div class="form-group"><label>First Name *</label><input type="text" id="betaFirst" placeholder="First name"></div>
-        <div class="form-group"><label>Last Name *</label><input type="text" id="betaLast" placeholder="Last name"></div>
-      </div>
-      <div class="form-group"><label>Email *</label><input type="email" id="betaEmail" placeholder="you@example.com"></div>
-      <div class="form-group"><label>Bike / Machine</label><input type="text" id="betaBike" placeholder="Yamaha R6 2022"></div>
-      <div class="form-group"><label>Home Track</label><input type="text" id="betaTrack" placeholder="CTMP Shannonville"></div>
-      <div class="form-group">
-        <label>Experience Level</label>
-        <select id="betaExp">
-          <option value="">Select...</option>
-          <option value="beginner">Beginner</option>
-          <option value="intermediate">Intermediate</option>
-          <option value="advanced">Advanced</option>
-          <option value="pro">Pro Racer</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>How did you hear about us?</label>
-        <select id="betaSource">
-          <option value="">Select...</option>
-          <option value="social">Social media</option>
-          <option value="friend">Friend / word of mouth</option>
-          <option value="trackday">Track day event</option>
-          <option value="search">Search engine</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <label style="display:flex; gap:10px; align-items:center; cursor:pointer; margin-bottom:20px;">
-        <input type="checkbox" id="betaConsent" style="width:auto; margin:0;">
-        <span style="font-size:13px; color:var(--muted);">I agree to receive email updates from MotoTrackIQ. We'll send a confirmation link — <strong style="color:var(--text);">by verifying, you consent to receive communication</strong>. You can unsubscribe anytime.</span>
-      </label>
-      <button class="btn btn-primary" style="width:100%; font-size:1rem; padding:14px;" onclick="submitBeta()">Join Waitlist 🚀</button>
-    </div>
-    <div class="card" style="max-width:560px; margin:20px auto; display:none; text-align:center;" id="betaSuccess">
-      <div style="font-size:3rem; margin-bottom:16px;" id="betaSuccessIcon">🎉</div>
-      <h3 style="font-size:1.2rem; margin-bottom:8px;" id="betaSuccessTitle">You're on the list!</h3>
-      <p class="text-muted" id="betaSuccessMsg"></p>
-      <!-- Resend confirmation (shown when a confirm link is expired/invalid) -->
-      <div id="betaResendBox" style="display:none; margin-top:20px; text-align:left;">
-        <div class="form-group"><label>Email</label><input type="email" id="betaResendEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doBetaResend()"></div>
-        <button class="btn btn-primary" style="width:100%;" onclick="doBetaResend()">Send me a new confirmation link →</button>
-        <p style="font-size:12px; color:var(--muted); text-align:center; margin-top:10px;">By verifying, you consent to receive communication from MotoTrackIQ. Unsubscribe anytime.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ── Admin Modal ── -->
 <div id="adminModal">
   <div class="admin-panel">
@@ -812,24 +744,13 @@
     </div>
 
     <div id="adminContent" style="display:none;">
-      <div class="stats-grid" id="adminStats"></div>
-      <hr class="divider">
       <!-- Admin tabs -->
       <div style="display:flex;gap:0;border-radius:8px 8px 0 0;overflow:hidden;border:1px solid var(--border);border-bottom:none;width:100%;">
-        <button id="adminTabBeta" onclick="switchAdminTab('beta')" style="flex:1;padding:10px;background:var(--card2);border:none;cursor:pointer;font-size:13px;font-weight:600;color:#9ca3af;font-family:inherit;transition:all .15s;">Beta Signups</button>
-        <button id="adminTabRiders" onclick="switchAdminTab('riders')" style="flex:1;padding:10px;background:var(--card2);border:none;cursor:pointer;font-size:13px;font-weight:600;color:#9ca3af;font-family:inherit;transition:all .15s;">Riders</button>
+        <button id="adminTabRiders" onclick="switchAdminTab('riders')" style="flex:1;padding:10px;background:var(--card);border:none;cursor:pointer;font-size:13px;font-weight:600;color:#38bdf8;font-family:inherit;transition:all .15s;">Riders</button>
         <button id="adminTabFeedback" onclick="switchAdminTab('feedback')" style="flex:1;padding:10px;background:var(--card2);border:none;cursor:pointer;font-size:13px;font-weight:600;color:#9ca3af;font-family:inherit;transition:all .15s;">Feedback</button>
       </div>
-      <!-- Beta tab -->
-      <div id="adminBetaPane" style="border:1px solid var(--border);border-radius:0 0 12px 12px;padding:20px;">
-        <button class="btn btn-secondary btn-sm" onclick="exportCSV()" style="margin-bottom:12px;">⬇ Export CSV</button>
-        <table class="admin-table">
-          <thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Track</th><th>Experience</th><th>Date</th><th></th></tr></thead>
-          <tbody id="adminBody"></tbody>
-        </table>
-      </div>
       <!-- Riders tab -->
-      <div id="adminRidersPane" style="display:none;border:1px solid var(--border);border-radius:0 0 12px 12px;padding:20px;">
+      <div id="adminRidersPane" style="border:1px solid var(--border);border-radius:0 0 12px 12px;padding:20px;">
         <table class="admin-table">
           <thead><tr><th>Name</th><th>Email</th><th>Experience</th><th>Joined</th><th></th></tr></thead>
           <tbody id="ridersBody"></tbody>
@@ -923,6 +844,14 @@
 // ── Config ─────────────────────────────────────────────────────────────────
 // API base resolved in config.js. Production and *.vercel.app previews use the Railway API unless overridden.
 const API = window.MTIQ_API_BASE;
+
+// Text that reaches the page from riders, sessions, or feedback is untrusted.
+// Use this only when a node must be built from a string. Prefer textContent.
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
 
 // ── Compatibility facade ───────────────────────────────────────────────────
 // Production still runs the June 2026 backend build, which has three bugs:
@@ -1093,7 +1022,6 @@ function showPage(name) {
   const page = document.getElementById('page-' + name);
   if (page) page.classList.add('active');
   if (name === 'sessions') loadSessions();
-  if (name === 'beta') loadBetaCount();
   if (name === 'demo') initDemo();
   if (name === 'membership') highlightSelectedPlan();
   window.scrollTo(0, 0);
@@ -1575,84 +1503,6 @@ async function handleVerifyLink(token) {
   }
 }
 
-// Handle a waitlist double opt-in confirmation link: ?confirm=<token>
-async function handleConfirmLink(token) {
-  showPage('beta');
-  document.getElementById('betaFormCard').style.display = 'none';
-  const card = document.getElementById('betaSuccess');
-  card.style.display = '';
-  document.getElementById('betaSuccessIcon').textContent = '⏳';
-  document.getElementById('betaSuccessTitle').textContent = 'Confirming…';
-  document.getElementById('betaSuccessMsg').textContent = 'One moment while we confirm your spot.';
-  try {
-    const r = await fetch(API + '/api/beta/confirm', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token })
-    });
-    const parsed = await readJson(r);
-    const notSupported = !parsed.isJson || (parsed.data && parsed.data.code === 'not_supported');
-    if (notSupported) {
-      document.getElementById('betaSuccessIcon').textContent = '⚠️';
-      document.getElementById('betaSuccessTitle').textContent = 'Confirmation is not available yet';
-      document.getElementById('betaSuccessMsg').textContent = (parsed.data && parsed.data.error)
-        ? parsed.data.error
-        : 'This server build has no confirmation endpoint (HTTP ' + parsed.status + ').';
-      return;
-    }
-    const d = parsed.data || {};
-    if (d.success) {
-      document.getElementById('betaSuccessIcon').textContent = '🎉';
-      document.getElementById('betaSuccessTitle').textContent = d.alreadyConfirmed
-        ? `You're already confirmed${d.firstName ? ', ' + d.firstName : ''}!`
-        : `You're confirmed${d.firstName ? ', ' + d.firstName : ''}!`;
-      document.getElementById('betaSuccessMsg').textContent = "You're officially on the MotoTrackIQ beta waitlist. We'll email you the moment beta opens.";
-      document.getElementById('betaResendBox').style.display = 'none';
-      toast('Waitlist spot confirmed! 🎉', 'success');
-      loadBetaCount();
-    } else {
-      const expired = d.code === 'expired' || r.status === 410;
-      document.getElementById('betaSuccessIcon').textContent = expired ? '⏰' : '⚠️';
-      document.getElementById('betaSuccessTitle').textContent = expired ? 'Confirmation link expired' : 'Link invalid or already used';
-      document.getElementById('betaSuccessMsg').textContent = d.error || 'Request a fresh confirmation link below.';
-      // Offer a resend
-      const emailFromUrl = new URLSearchParams(window.location.search).get('email') || '';
-      if (emailFromUrl) document.getElementById('betaResendEmail').value = emailFromUrl;
-      document.getElementById('betaResendBox').style.display = '';
-    }
-  } catch {
-    document.getElementById('betaSuccessIcon').textContent = '⚠️';
-    document.getElementById('betaSuccessTitle').textContent = 'Cannot reach server';
-    document.getElementById('betaSuccessMsg').textContent = 'Please try the link again in a moment.';
-  }
-}
-
-// Resend a fresh waitlist confirmation link.
-async function doBetaResend() {
-  const email = (document.getElementById('betaResendEmail').value || '').trim();
-  if (!email || !email.includes('@')) { toast('Enter a valid email', 'error'); return; }
-  try {
-    const r = await fetch(API + '/api/beta/resend', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const parsed = await readJson(r);
-    if (!parsed.isJson || (parsed.data && parsed.data.code === 'not_supported')) {
-      toast((parsed.data && parsed.data.error) || ('Resend is not available on this server yet (' + parsed.status + ')'), 'error', 6000);
-      return;
-    }
-    const d = parsed.data || {};
-    if (d.success) {
-      document.getElementById('betaSuccessIcon').textContent = '📧';
-      document.getElementById('betaSuccessTitle').textContent = 'Check your inbox';
-      document.getElementById('betaSuccessMsg').textContent = d.message || 'A fresh confirmation link is on its way.';
-      document.getElementById('betaResendBox').style.display = 'none';
-      toast('Confirmation link sent', 'success');
-    } else {
-      toast(d.error || 'Could not resend', 'error');
-    }
-  } catch { toast('Cannot reach server', 'error'); }
-}
-
 const OAUTH_ERRORS = {
   missing_email: 'That provider did not share an email address, so no account was created.',
   email_unverified: 'That email was not verified by the provider, so it was not linked to an existing account.',
@@ -1790,13 +1640,14 @@ function checkUrlReset() {
     return;
   }
 
-  // Waitlist double opt-in confirmation link
-  const confirmToken = params.get('confirm');
-  if (confirmToken) {
-    handleConfirmLink(confirmToken);
-    const cleanUrl = window.location.origin + window.location.pathname + '?page=beta';
-    window.history.replaceState({}, '', cleanUrl);
-    return;
+  // Old waitlist emails used ?confirm=. That flow is retired; drop the
+  // parameter and leave the rider on the page they opened. Keep email when
+  // a password-reset or verification link is in the same URL.
+  if (params.get('confirm')) {
+    params.delete('confirm');
+    if (!params.get('reset') && !params.get('verify')) params.delete('email');
+    const leftover = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (leftover ? '?' + leftover : '') + window.location.hash);
   }
 
   // Email verification link
@@ -1861,20 +1712,81 @@ function renderSessions(sessions) {
   sub.textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
 
   if (!sessions.length) {
-    empty.style.display = ''; table.style.display = 'none'; return;
+    empty.style.display = ''; table.style.display = 'none'; body.replaceChildren(); return;
   }
   empty.style.display = 'none'; table.style.display = '';
-  body.innerHTML = sessions.map(s => `
-    <tr onclick="openSession('${s.id}')" style="cursor:pointer;">
-      <td>${(() => { const k = sessionDateKey(s); if (k) return new Date(k + 'T12:00:00').toLocaleDateString(); return s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'; })()}</td>
-      <td>${s.track || '—'}</td>
-      <td>${s.bike || '—'}</td>
-      <td class="text-accent fw-700">${(() => { const v = s.bestLap || s.analysisData?.lapStats?.best || s.analysisData?.summary?.bestLapTime; return v ? formatTime(v) : '—'; })()}</td>
-      <td>${(() => { const v = s.topSpeed || s.analysisData?.metrics?.maxSpeed || s.analysisData?.summary?.topSpeed; return v ? Math.round(v) : '—'; })()} km/h</td>
-      <td><span class="badge badge-green">${s.lapCount || s.analysisData?.laps?.length || '—'} laps</span></td>
-      <td><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); downloadDayReport('${s.date || ''}')" title="Download Day Progress PDF">⬇ Day</button></td>
-    </tr>`).join('');
+  body.replaceChildren();
+  sessions.forEach((s) => body.appendChild(sessionRow(s)));
 }
+
+function td(text, className) {
+  const cell = document.createElement('td');
+  if (className) cell.className = className;
+  cell.textContent = text == null || text === '' ? '—' : String(text);
+  return cell;
+}
+
+function dayReportButton(date) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-secondary btn-sm';
+  btn.title = 'Download Day Progress PDF';
+  btn.textContent = '⬇ Day';
+  btn.dataset.action = 'day-report';
+  btn.dataset.date = date || '';
+  return btn;
+}
+
+function sessionBestText(s) {
+  const v = s.bestLap || s.analysisData?.lapStats?.best || s.analysisData?.summary?.bestLapTime;
+  return v ? formatTime(v) : '—';
+}
+
+function sessionSpeedText(s) {
+  const v = s.topSpeed || s.analysisData?.metrics?.maxSpeed || s.analysisData?.summary?.topSpeed;
+  return (v ? Math.round(v) : '—') + ' km/h';
+}
+
+function lapBadge(count) {
+  const span = document.createElement('span');
+  span.className = 'badge badge-green';
+  span.textContent = (count || '—') + ' laps';
+  return span;
+}
+
+function sessionRow(s) {
+  const tr = document.createElement('tr');
+  tr.style.cursor = 'pointer';
+  if (s && s.id != null) tr.dataset.sessionId = String(s.id);
+  const lapsCell = document.createElement('td');
+  lapsCell.appendChild(lapBadge(s.lapCount || s.analysisData?.laps?.length));
+  const action = document.createElement('td');
+  action.appendChild(dayReportButton(sessionDateKey(s) || ''));
+  const when = sessionDateKey(s);
+  tr.append(
+    td(when ? new Date(when + 'T12:00:00').toLocaleDateString() : (s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—')),
+    td(s.track || '—'),
+    td(s.bike || '—'),
+    td(sessionBestText(s), 'text-accent fw-700'),
+    td(sessionSpeedText(s)),
+    lapsCell,
+    action
+  );
+  return tr;
+}
+
+document.getElementById('sessionsBody').addEventListener('click', (e) => {
+  const dayBtn = e.target.closest('[data-action="day-report"]');
+  if (dayBtn) {
+    e.stopPropagation();
+    downloadDayReport(dayBtn.dataset.date || '');
+    return;
+  }
+  const sessionRowEl = e.target.closest('tr[data-session-id]');
+  if (sessionRowEl) { openSession(sessionRowEl.dataset.sessionId); return; }
+  const groupRow = e.target.closest('tr[data-day-group]');
+  if (groupRow) toggleDayGroup(groupRow.dataset.dayGroup);
+});
 
 function showDetail(id, session) {
   currentSessionId = id;
@@ -1889,18 +1801,22 @@ function showDetail(id, session) {
   const lapTimeOf = l => (l.time ?? l.lapTime ?? 0);
   let bestIdx = -1, bestVal = Infinity;
   laps.forEach((l, i) => { const t = lapTimeOf(l); if (t > 0 && t < bestVal) { bestVal = t; bestIdx = i; } });
-  document.getElementById('detailLapBody').innerHTML = laps.map((l, i) => {
+  document.getElementById('detailLapBody').replaceChildren();
+  const detailBody = document.getElementById('detailLapBody');
+  laps.forEach((l, i) => {
     const t = lapTimeOf(l);
     const delta = (bestIdx >= 0 && t > 0) ? (t - bestVal) : 0;
-    return `
-    <tr class="${i === bestIdx ? 'best' : ''}">
-      <td>Lap ${l.lapNumber || i+1}</td>
-      <td>${t > 0 ? formatTime(t) : '—'}</td>
-      <td class="${i === bestIdx ? '' : 'text-accent'}">${i === bestIdx ? 'BEST' : (delta > 0 ? '+' + formatTime(delta) : '—')}</td>
-      <td>${Math.round(l.maxSpeed||l.topSpeed||0)} km/h</td>
-      <td>${(l.maxG||0).toFixed(2)} G</td>
-    </tr>`;
-  }).join('');
+    const tr = document.createElement('tr');
+    if (i === bestIdx) tr.className = 'best';
+    tr.append(
+      td('Lap ' + (l.lapNumber || i + 1)),
+      td(t > 0 ? formatTime(t) : '—'),
+      td(i === bestIdx ? 'BEST' : (delta > 0 ? '+' + formatTime(delta) : '—'), i === bestIdx ? '' : 'text-accent'),
+      td(Math.round(l.maxSpeed || l.topSpeed || 0) + ' km/h'),
+      td((Number(l.maxG) || 0).toFixed(2) + ' G')
+    );
+    detailBody.appendChild(tr);
+  });
 
   if (detailChart) detailChart.destroy();
   const ctx = document.getElementById('detailChart').getContext('2d');
@@ -2001,17 +1917,21 @@ function renderUploadResult(a, fileName) {
   document.getElementById('statBest').textContent = bestTime > 0 ? formatTime(bestTime) : '—';
   document.getElementById('statSpeed').textContent = Math.round(metrics.maxSpeed || 0) || '—';
   document.getElementById('statAvg').textContent = stats.average > 0 ? formatTime(stats.average) : '—';
-  document.getElementById('lapBody').innerHTML = laps.map((l, i) => {
+  const lapBody = document.getElementById('lapBody');
+  lapBody.replaceChildren();
+  laps.forEach((l, i) => {
     const t = lapTimeOf(l);
     const delta = (bestIdx >= 0 && t > 0) ? (t - bestVal) : 0;
-    return `
-    <tr class="${i === bestIdx ? 'best' : ''}">
-      <td>Lap ${l.lapNumber || i+1}</td>
-      <td>${t > 0 ? formatTime(t) : '—'}</td>
-      <td>${i === bestIdx ? '🏆 BEST' : (delta > 0 ? '+' + formatTime(delta) : '—')}</td>
-      <td>${Math.round(l.maxSpeed || l.topSpeed || 0)} km/h</td>
-    </tr>`;
-  }).join('');
+    const tr = document.createElement('tr');
+    if (i === bestIdx) tr.className = 'best';
+    tr.append(
+      td('Lap ' + (l.lapNumber || i + 1)),
+      td(t > 0 ? formatTime(t) : '—'),
+      td(i === bestIdx ? '🏆 BEST' : (delta > 0 ? '+' + formatTime(delta) : '—')),
+      td(Math.round(l.maxSpeed || l.topSpeed || 0) + ' km/h')
+    );
+    lapBody.appendChild(tr);
+  });
 
   if (uploadChart) uploadChart.destroy();
   uploadChart = new Chart(document.getElementById('uploadChart').getContext('2d'), buildSpeedChart(laps));
@@ -2029,7 +1949,7 @@ function renderCoaching(a, containerId) {
   if (!c || !Array.isArray(c.notes) || !c.notes.length) { el.innerHTML = ''; return; }
   const notes = c.notes.map(n => `
     <div style="background:#161616;border:1px solid #1f1f1f;border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px;margin-bottom:10px;">
-      <div style="font-weight:700;color:var(--text);margin-bottom:4px;font-size:14px;">${n.icon ? n.icon + ' ' : ''}${escapeHtml(n.title || '')}</div>
+      <div style="font-weight:700;color:var(--text);margin-bottom:4px;font-size:14px;">${n.icon ? escapeHtml(n.icon) + ' ' : ''}${escapeHtml(n.title || '')}</div>
       <div style="color:var(--muted);font-size:13px;line-height:1.6;">${escapeHtml(n.text || '')}</div>
     </div>`).join('');
   el.innerHTML = `
@@ -2037,8 +1957,6 @@ function renderCoaching(a, containerId) {
     ${c.summary ? `<p style="color:var(--muted);font-size:13px;margin-bottom:14px;font-style:italic;">${escapeHtml(c.summary)}</p>` : ''}
     ${notes}`;
 }
-
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
 // Normalize a session's date to 'YYYY-MM-DD'.
 // The backend has returned this field as an ISO string, a 'YYYY-MM-DD' string,
@@ -2142,72 +2060,171 @@ async function loadDayProgress(sessions) {
   const maxSpeed = Math.max(...sessions2.flatMap(s => [s.analysisData?.metrics?.maxSpeed || 0]));
 
   banner.style.display = '';
-  banner.innerHTML = `
-    <div class="card" style="background:linear-gradient(135deg,#0d0d0d 0%,#111827 100%);border-left:4px solid var(--accent);">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px;">Day Progress &bull; ${label} &bull; ${sessions2.length} sessions</div>
-          <div style="font-size:1.5rem;font-weight:800;margin-bottom:6px;">
-            ${dayBest ? formatTime(dayBest) : '—'}
-            ${improvement ? `<span style="font-size:.9rem;color:var(--green);margin-left:10px;">${improvement > 0 ? '-' : '+'}${Math.abs(improvement).toFixed(2)}s AM→PM</span>` : ''}
-          </div>
-          <div style="font-size:13px;color:var(--muted);">
-            ${amSessions.length > 0 ? `<span style="color:var(--accent2);">AM</span>: ${amBest ? formatTime(amBest) : '—'} &nbsp;&nbsp;` : ''}
-            ${pmSessions.length > 0 ? `<span style="color:var(--accent);">PM</span>: ${pmBest ? formatTime(pmBest) : '—'}` : ''}
-            &nbsp;&bull;&nbsp; ${totalLaps} laps &nbsp;&bull;&nbsp; ${Math.round(maxSpeed)} km/h top speed
-          </div>
-          ${progress?.notes?.length ? `<div style="margin-top:8px;font-size:12px;color:var(--muted);"><span style="color:var(--text);font-weight:600;">Coaching:</span> ${progress.notes.map(n => n.icon + ' ' + n.title).join(' · ')}</div>` : ''}
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="downloadDayReport('${topDate}')" style="flex-shrink:0;">⬇ Day Progress PDF</button>
-      </div>
-    </div>`;
+  renderDayProgressBanner(banner, {
+    label, sessions2, dayBest, improvement, amSessions, pmSessions, amBest, pmBest, totalLaps, maxSpeed, progress, topDate
+  });
 
-  // Also show per-date group rows in sessions table
-  // Hide the individual sessions table and show grouped by date
+  // Replace the flat list with one row per day, plus hidden per-session rows.
   const table = document.getElementById('sessionsTable');
   const tbody = document.getElementById('sessionsBody');
   if (multiDates.length > 0) {
     table.style.display = '';
-    tbody.innerHTML = multiDates.map(([date, ss]) => {
-      const best = Math.min(...ss.flatMap(s => (s.analysisData?.lapStats ? [s.analysisData.lapStats.best] : [])).filter(t => t > 0));
-      const topSpd = Math.max(...ss.flatMap(s => [s.analysisData?.metrics?.maxSpeed || 0]));
-      const total = ss.flatMap(s => s.analysisData?.laps || []).length;
-      const dateLabel = (date === new Date().toISOString().slice(0,10)) ? 'Today' : new Date(date + 'T12:00:00').toLocaleDateString('en-CA', {month:'short', day:'numeric'});
-      const amH = ss.filter(s => { const h = new Date(s.analysisData?.summary?.sessionDate || s.createdAt).getHours(); return h < 12; }).length;
-      const pmH = ss.length - amH;
-      const badge = amH && pmH ? `<span class="badge" style="background:#1a2744;color:var(--accent2);">AM+PM</span>` : '';
-      return `
-      <tr class="date-group-row" onclick="toggleDayGroup('${date}')" style="cursor:pointer;">
-        <td><span style="font-weight:700;">${dateLabel}</span></td>
-        <td colspan="3" style="color:var(--accent);font-size:13px;">${ss.length} sessions &bull; ${total} laps &bull; ${badge}</td>
-        <td class="text-accent fw-700">${best > 0 ? formatTime(best) : '—'}</td>
-        <td>${Math.round(topSpd)} km/h</td>
-        <td><span class="badge badge-green">${total} laps</span></td>
-        <td><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); downloadDayReport('${date}')" title="Download Day Progress PDF">⬇ Day</button></td>
-      </tr>
-      ${ss.map(s => {
-        const lapCount = s.analysisData?.laps?.length || 0;
-        const lapBest = s.analysisData?.lapStats?.best || null;
-        const spd = Math.round(s.analysisData?.metrics?.maxSpeed || 0);
-        const sessionDate = new Date(s.analysisData?.summary?.sessionDate || s.createdAt);
-        const timeStr = sessionDate.toLocaleTimeString('en-CA', {hour:'2-digit',minute:'2-digit'});
-        const period = sessionDate.getHours() < 12 ? '<span style="color:var(--accent2);font-size:11px;">AM</span>' : '<span style="color:var(--accent);font-size:11px;">PM</span>';
-        return `
-        <tr class="day-group-${date}" onclick="openSession('${s.id}')" style="display:none;cursor:pointer;">
-          <td style="padding-left:24px;">${timeStr} ${period}</td>
-          <td>${s.track || '—'}</td>
-          <td>${s.bike || '—'}</td>
-          <td class="text-accent fw-700">${lapBest > 0 ? formatTime(lapBest) : '—'}</td>
-          <td>${spd > 0 ? spd + ' km/h' : '—'}</td>
-          <td><span class="badge badge-green">${lapCount} laps</span></td>
-          <td><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); downloadDayReport('${date}')">⬇ Day</button></td>
-        </tr>`;}).join('')}`;
-    }).join('');
+    renderDayGroups(tbody, multiDates);
   }
 }
 
+function renderDayProgressBanner(banner, d) {
+  banner.replaceChildren();
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.background = 'linear-gradient(135deg,#0d0d0d 0%,#111827 100%)';
+  card.style.borderLeft = '4px solid var(--accent)';
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;';
+  const left = document.createElement('div');
+
+  const kicker = document.createElement('div');
+  kicker.style.cssText = 'font-size:.75rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px;';
+  kicker.textContent = 'Day Progress · ' + d.label + ' · ' + d.sessions2.length + ' sessions';
+
+  const headline = document.createElement('div');
+  headline.style.cssText = 'font-size:1.5rem;font-weight:800;margin-bottom:6px;';
+  headline.appendChild(document.createTextNode(d.dayBest ? formatTime(d.dayBest) : '—'));
+  if (d.improvement) {
+    const delta = document.createElement('span');
+    delta.style.cssText = 'font-size:.9rem;color:var(--green);margin-left:10px;';
+    delta.textContent = (d.improvement > 0 ? '-' : '+') + Math.abs(d.improvement).toFixed(2) + 's AM→PM';
+    headline.appendChild(delta);
+  }
+
+  const meta = document.createElement('div');
+  meta.style.cssText = 'font-size:13px;color:var(--muted);';
+  if (d.amSessions.length > 0) {
+    const am = document.createElement('span');
+    am.style.color = 'var(--accent2)';
+    am.textContent = 'AM';
+    meta.append(am, document.createTextNode(': ' + (d.amBest ? formatTime(d.amBest) : '—') + '    '));
+  }
+  if (d.pmSessions.length > 0) {
+    const pm = document.createElement('span');
+    pm.style.color = 'var(--accent)';
+    pm.textContent = 'PM';
+    meta.append(pm, document.createTextNode(': ' + (d.pmBest ? formatTime(d.pmBest) : '—')));
+  }
+  meta.append(document.createTextNode('   ·   ' + d.totalLaps + ' laps   ·   ' + Math.round(d.maxSpeed) + ' km/h top speed'));
+
+  left.append(kicker, headline, meta);
+  if (d.progress && Array.isArray(d.progress.notes) && d.progress.notes.length) {
+    const notes = document.createElement('div');
+    notes.style.cssText = 'margin-top:8px;font-size:12px;color:var(--muted);';
+    const label = document.createElement('span');
+    label.style.cssText = 'color:var(--text);font-weight:600;';
+    label.textContent = 'Coaching: ';
+    notes.appendChild(label);
+    notes.appendChild(document.createTextNode(
+      d.progress.notes.map(n => [n && n.icon, n && n.title].filter(Boolean).join(' ')).join(' · ')
+    ));
+    left.appendChild(notes);
+  }
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-primary btn-sm';
+  btn.style.flexShrink = '0';
+  btn.textContent = '⬇ Day Progress PDF';
+  btn.addEventListener('click', () => downloadDayReport(d.topDate));
+
+  row.append(left, btn);
+  card.appendChild(row);
+  banner.appendChild(card);
+}
+
+function renderDayGroups(tbody, multiDates) {
+  tbody.replaceChildren();
+  const todayKey = new Date().toISOString().slice(0, 10);
+  multiDates.forEach(([date, ss]) => {
+    const bestVals = ss.flatMap(s => (s.analysisData?.lapStats ? [s.analysisData.lapStats.best] : [])).filter(t => t > 0);
+    const best = bestVals.length ? Math.min(...bestVals) : 0;
+    const topSpd = Math.max(0, ...ss.flatMap(s => [s.analysisData?.metrics?.maxSpeed || 0]));
+    const total = ss.flatMap(s => s.analysisData?.laps || []).length;
+    const dateLabel = date === todayKey
+      ? 'Today'
+      : new Date(date + 'T12:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+    const amH = ss.filter(s => new Date(s.analysisData?.summary?.sessionDate || s.createdAt).getHours() < 12).length;
+
+    const group = document.createElement('tr');
+    group.className = 'date-group-row';
+    group.style.cursor = 'pointer';
+    group.dataset.dayGroup = date;
+    const dateCell = document.createElement('td');
+    const dateSpan = document.createElement('span');
+    dateSpan.style.fontWeight = '700';
+    dateSpan.textContent = dateLabel;
+    dateCell.appendChild(dateSpan);
+    const summary = document.createElement('td');
+    summary.colSpan = 3;
+    summary.style.color = 'var(--accent)';
+    summary.style.fontSize = '13px';
+    summary.appendChild(document.createTextNode(ss.length + ' sessions · ' + total + ' laps'));
+    if (amH && ss.length - amH) {
+      summary.appendChild(document.createTextNode(' · '));
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.style.background = '#1a2744';
+      badge.style.color = 'var(--accent2)';
+      badge.textContent = 'AM+PM';
+      summary.appendChild(badge);
+    }
+    const lapsCell = document.createElement('td');
+    lapsCell.appendChild(lapBadge(total));
+    const action = document.createElement('td');
+    action.appendChild(dayReportButton(date));
+    group.append(dateCell, summary, td(best > 0 ? formatTime(best) : '—', 'text-accent fw-700'), td(Math.round(topSpd) + ' km/h'), lapsCell, action);
+    tbody.appendChild(group);
+
+    ss.forEach((s) => {
+      const sessionDate = new Date(s.analysisData?.summary?.sessionDate || s.createdAt);
+      const when = document.createElement('td');
+      when.style.paddingLeft = '24px';
+      when.appendChild(document.createTextNode(sessionDate.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' }) + ' '));
+      const period = document.createElement('span');
+      const am = sessionDate.getHours() < 12;
+      period.style.color = am ? 'var(--accent2)' : 'var(--accent)';
+      period.style.fontSize = '11px';
+      period.textContent = am ? 'AM' : 'PM';
+      when.appendChild(period);
+      const lapCount = s.analysisData?.laps?.length || 0;
+      const lapBest = s.analysisData?.lapStats?.best || null;
+      const spd = Math.round(s.analysisData?.metrics?.maxSpeed || 0);
+      const child = document.createElement('tr');
+      child.style.display = 'none';
+      child.style.cursor = 'pointer';
+      child.dataset.parentDay = date;
+      if (s && s.id != null) child.dataset.sessionId = String(s.id);
+      const childLaps = document.createElement('td');
+      const childBadge = document.createElement('span');
+      childBadge.className = 'badge badge-green';
+      childBadge.textContent = lapCount + ' laps';
+      childLaps.appendChild(childBadge);
+      const childAction = document.createElement('td');
+      childAction.appendChild(dayReportButton(date));
+      child.append(
+        when,
+        td(s.track || '—'),
+        td(s.bike || '—'),
+        td(lapBest > 0 ? formatTime(lapBest) : '—', 'text-accent fw-700'),
+        td(spd > 0 ? spd + ' km/h' : '—'),
+        childLaps,
+        childAction
+      );
+      tbody.appendChild(child);
+    });
+  });
+}
+
 function toggleDayGroup(date) {
-  document.querySelectorAll(`.day-group-${date}`).forEach(el => {
+  document.querySelectorAll('#sessionsBody tr[data-parent-day]').forEach(el => {
+    if (el.dataset.parentDay !== date) return;
     el.style.display = el.style.display === 'none' ? '' : 'none';
   });
 }
@@ -2474,76 +2491,6 @@ async function submitReview() {
   }
 }
 
-// ── Beta ───────────────────────────────────────────────────────────────────
-async function loadBetaCount() {
-  try {
-    const r = await fetch(API + '/api/beta/count');
-    const d = await r.json();
-    const el = document.getElementById('betaCount');
-    if (d.count) el.textContent = d.count + ' riders already signed up';
-  } catch {}
-}
-
-async function submitBeta() {
-  const first = document.getElementById('betaFirst').value.trim();
-  const last  = document.getElementById('betaLast').value.trim();
-  const email = document.getElementById('betaEmail').value.trim();
-  const consent = document.getElementById('betaConsent').checked;
-  if (!first || !last || !email) { toast('Name and email are required', 'error'); return; }
-  if (!consent) { toast('Please accept the consent checkbox', 'error'); return; }
-
-  try {
-    const r = await fetch(API + '/api/beta-signup', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName: first, lastName: last, email,
-        bike: document.getElementById('betaBike').value,
-        track: document.getElementById('betaTrack').value,
-        experience: document.getElementById('betaExp').value,
-        source: document.getElementById('betaSource').value, consent: true })
-    });
-    const parsed = await readJson(r);
-    if (!parsed.isJson) {
-      // The server answered with HTML — almost always Express's "Cannot POST
-      // /api/beta-signup" 404 page, which means the deployed backend build
-      // does not have this route. Say that, instead of blaming the network.
-      toast('Signup is not available on this server yet (' + parsed.status + '). Please try again shortly.', 'error', 6000);
-      return;
-    }
-    if (parsed.status === 501 && parsed.data && parsed.data.code === 'not_supported') {
-      toast(parsed.data.error || 'Signup is not available on this server yet.', 'error', 6000);
-      return;
-    }
-    const d = parsed.data || {};
-    if (d.success) {
-      // The CURRENT backend build does double opt-in: it returns
-      // { pending: true, message: '...check your email to confirm...' } and
-      // emails the SIGNER a confirmation link. The June build still on
-      // production has no confirmation token at all — it only emails the
-      // admin, and returns { success: true, signup } with no message.
-      //
-      // So: only promise a confirmation email when the server actually says
-      // it sent one. Otherwise the signup IS complete, just without the
-      // double opt-in step, and we say so plainly.
-      const doubleOptIn = !!(d.pending || d.message);
-      document.getElementById('betaFormCard').style.display = 'none';
-      document.getElementById('betaSuccess').style.display = '';
-      document.getElementById('betaSuccessIcon').textContent = '🎉';
-      document.getElementById('betaSuccessTitle').textContent = doubleOptIn
-        ? 'Almost there — check your email!'
-        : "You're on the waitlist!";
-      document.getElementById('betaSuccessMsg').textContent = d.message || (
-        doubleOptIn
-          ? `Thanks ${first}! We sent a confirmation link to ${email}. Click it to lock in your spot on the waitlist.`
-          : `Thanks ${first}! You're on the MotoTrackIQ beta waitlist. We'll email you the moment beta opens.`
-      );
-      toast(d.message || (doubleOptIn ? 'Check your email to confirm your spot' : "You're on the waitlist!"), 'success');
-    } else { toast(d.error || 'Signup failed', 'error'); }
-  } catch (e) {
-    console.error('[beta] signup failed:', e);
-    toast('Cannot reach server (' + (e && e.message ? e.message : 'network error') + ')', 'error');
-  }
-}
-
 // ── Admin ─────────────────────────────────────────────────────────────────────
 // Admin auth: a server-side secret key sent as the X-Admin-Key header.
 // The key is held only in memory for the session (not persisted to localStorage).
@@ -2556,63 +2503,103 @@ async function verifyPin() {
   const key = document.getElementById('adminPin').value.trim();
   if (!key) { toast('Enter admin key', 'error'); return; }
   ADMIN_KEY = key;
-  // Validate against the server before revealing the panel.
+  // The waitlist stats route is gone. A riders list is the admin-key check.
   try {
-    const r = await fetch(API + '/api/admin/signups/stats', { headers: adminAuthHeaders() });
+    const r = await fetch(API + '/api/admin/riders', { headers: adminAuthHeaders() });
     if (r.status === 401 || r.status === 503) { ADMIN_KEY = ''; toast('Invalid admin key', 'error'); document.getElementById('adminPin').value = ''; return; }
     if (!r.ok) { ADMIN_KEY = ''; toast('Admin check failed', 'error'); return; }
     document.getElementById('adminLock').style.display = 'none';
     document.getElementById('adminContent').style.display = '';
-    loadAdminData();
+    switchAdminTab('riders');
   } catch { ADMIN_KEY = ''; toast('Cannot reach server', 'error'); }
 }
 
-async function loadAdminData() {
-  try {
-    const [signupsR, statsR] = await Promise.all([
-      fetch(API + '/api/admin/signups', { headers: adminAuthHeaders() }),
-      fetch(API + '/api/admin/signups/stats', { headers: adminAuthHeaders() })
-    ]);
-    const signups = (await signupsR.json()).signups || [];
-    const stats = await statsR.json();
-    document.getElementById('adminStats').innerHTML = `
-      <div class="stat-card"><div class="num">${stats.confirmed||0}</div><div class="lbl">Confirmed</div></div>
-      <div class="stat-card"><div class="num">${stats.total||0}</div><div class="lbl">Total Signups</div></div>
-      <div class="stat-card"><div class="num">${Object.keys(stats.byTrack||{}).length}</div><div class="lbl">Tracks</div></div>
-      <div class="stat-card"><div class="num">${stats.byExperience?.advanced||0}</div><div class="lbl">Advanced+</div></div>`;
-    document.getElementById('adminBody').innerHTML = signups.map(s => `
-      <tr>
-        <td>${s.firstName} ${s.lastName}</td>
-        <td>${s.email}</td>
-        <td>${s.confirmed ? '<span class="badge badge-green">✓ confirmed</span>' : '<span style="color:#f59e0b;">⏳ pending</span>'}</td>
-        <td>${s.track||'—'}</td>
-        <td>${s.experience||'—'}</td>
-        <td>${s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : '—'}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteSignup('${s.email}')">✕</button></td>
-      </tr>`).join('');
-    window._adminSignups = signups;
-  } catch { toast('Could not load admin data', 'error'); }
+function adminEmptyRow(colspan, message) {
+  const tr = document.createElement('tr');
+  const cell = document.createElement('td');
+  cell.colSpan = colspan;
+  cell.className = 'text-muted';
+  cell.style.textAlign = 'center';
+  cell.style.padding = '24px';
+  cell.textContent = message;
+  tr.appendChild(cell);
+  return tr;
+}
+
+function adminActionButton(label, className, action, fields) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = className;
+  btn.textContent = label;
+  btn.dataset.action = action;
+  Object.keys(fields || {}).forEach((key) => {
+    btn.dataset[key] = fields[key] == null ? '' : String(fields[key]);
+  });
+  return btn;
+}
+
+function renderAdminRiders(riders) {
+  const body = document.getElementById('ridersBody');
+  body.replaceChildren();
+  if (!riders.length) {
+    body.appendChild(adminEmptyRow(5, 'No riders registered yet.'));
+    return;
+  }
+  riders.forEach((rider) => {
+    const tr = document.createElement('tr');
+    const name = [rider.firstName, rider.lastName].filter(Boolean).join(' ');
+    const emailCell = document.createElement('td');
+    if (rider.email) {
+      const link = document.createElement('a');
+      link.style.color = '#38bdf8';
+      link.textContent = String(rider.email);
+      link.href = 'mailto:' + String(rider.email);
+      emailCell.appendChild(link);
+    } else {
+      emailCell.textContent = '—';
+    }
+    const actions = document.createElement('td');
+    actions.style.whiteSpace = 'nowrap';
+    actions.append(
+      adminActionButton('Reset Password', 'btn btn-secondary btn-sm', 'reset-password', {
+        id: rider.id, name: rider.firstName || ''
+      }),
+      document.createTextNode(' '),
+      adminActionButton('✕', 'btn btn-danger btn-sm', 'delete-rider', {
+        id: rider.id, email: rider.email || ''
+      })
+    );
+    tr.append(
+      td(name || '—'),
+      emailCell,
+      td(rider.experience || '—'),
+      td(rider.createdAt ? new Date(rider.createdAt).toLocaleDateString() : '—'),
+      actions
+    );
+    body.appendChild(tr);
+  });
 }
 
 async function loadAdminRiders() {
   try {
     const r = await fetch(API + '/api/admin/riders', { headers: adminAuthHeaders() });
     const d = await r.json();
-    const riders = d.riders || [];
-    document.getElementById('ridersBody').innerHTML = riders.length ? riders.map(r => `
-      <tr>
-        <td>${r.firstName} ${r.lastName}</td>
-        <td><a href="mailto:${r.email}" style="color:#38bdf8;">${r.email}</a></td>
-        <td>${r.experience||'—'}</td>
-        <td>${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}</td>
-        <td style="white-space:nowrap;"><button class="btn btn-secondary btn-sm" onclick="adminResetRiderPassword('${r.id}','${r.firstName}')">Reset Password</button> <button class="btn btn-danger btn-sm" onclick="adminDeleteRider('${r.id}','${r.email}')">✕</button></td>
-      </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:24px;">No riders registered yet.</td></tr>';
+    renderAdminRiders(d.riders || []);
   } catch { toast('Could not load riders', 'error'); }
 }
 
+document.getElementById('ridersBody').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id || '';
+  if (!id) return;
+  if (btn.dataset.action === 'reset-password') adminResetRiderPassword(id, btn.dataset.name || '');
+  if (btn.dataset.action === 'delete-rider') adminDeleteRider(id, btn.dataset.email || '');
+});
+
 function switchAdminTab(tab) {
-  const tabs = { beta: 'adminBetaPane', riders: 'adminRidersPane', feedback: 'adminFeedbackPane' };
-  const btns = { beta: 'adminTabBeta', riders: 'adminTabRiders', feedback: 'adminTabFeedback' };
+  const tabs = { riders: 'adminRidersPane', feedback: 'adminFeedbackPane' };
+  const btns = { riders: 'adminTabRiders', feedback: 'adminTabFeedback' };
   Object.keys(tabs).forEach((k) => {
     const active = k === tab;
     document.getElementById(btns[k]).style.background = active ? 'var(--card)' : 'var(--card2)';
@@ -2623,34 +2610,91 @@ function switchAdminTab(tab) {
   if (tab === 'feedback') loadAdminFeedback();
 }
 
+function feedbackStars(rating) {
+  const n = Number(rating);
+  if (!Number.isInteger(n) || n < 1 || n > 5) return '—';
+  return '★'.repeat(n) + '☆'.repeat(5 - n);
+}
+
+function renderAdminFeedback(rows) {
+  const body = document.getElementById('feedbackBody');
+  body.replaceChildren();
+  if (!rows.length) {
+    body.appendChild(adminEmptyRow(7, 'No feedback yet.'));
+    return;
+  }
+  rows.forEach((f) => {
+    const tr = document.createElement('tr');
+    const comment = document.createElement('td');
+    comment.style.maxWidth = '280px';
+    comment.textContent = f.comment || '—';
+    const consent = document.createElement('td');
+    consent.style.textAlign = 'center';
+    consent.textContent = f.consentPublic ? '✅' : '—';
+    const pub = document.createElement('td');
+    const pubLabel = document.createElement('span');
+    pubLabel.textContent = f.approved ? 'Live' : 'Hidden';
+    pubLabel.style.color = f.approved ? '#22c55e' : '';
+    if (!f.approved) pubLabel.className = 'text-muted';
+    pub.appendChild(pubLabel);
+    const when = document.createElement('td');
+    when.style.fontSize = '12px';
+    const created = f.createdAt == null ? '' : String(f.createdAt);
+    when.textContent = created.length >= 10 ? created.slice(0, 10) : (created || '—');
+    const actions = document.createElement('td');
+    actions.style.whiteSpace = 'nowrap';
+    if (f.approved) {
+      actions.appendChild(adminActionButton('Unpublish', 'btn btn-secondary btn-sm', 'unpublish', { id: f.id }));
+    } else if (f.consentPublic) {
+      actions.appendChild(adminActionButton('Publish', 'btn btn-primary btn-sm', 'publish', { id: f.id }));
+    } else {
+      const none = document.createElement('span');
+      none.className = 'text-muted';
+      none.style.fontSize = '11px';
+      none.textContent = 'no consent';
+      actions.appendChild(none);
+    }
+    if (f.approved) {
+      actions.appendChild(document.createTextNode(' '));
+      const feat = adminActionButton(f.featured ? '⭐' : '☆', 'btn btn-secondary btn-sm', 'feature', {
+        id: f.id, featured: f.featured ? '0' : '1'
+      });
+      feat.title = 'Feature';
+      actions.appendChild(feat);
+    }
+    actions.appendChild(document.createTextNode(' '));
+    actions.appendChild(adminActionButton('🗑', 'btn btn-secondary btn-sm', 'delete', { id: f.id }));
+    tr.append(td(f.riderName || '—'), td(feedbackStars(f.rating)), comment, consent, pub, when, actions);
+    body.appendChild(tr);
+  });
+}
+
 async function loadAdminFeedback() {
   const body = document.getElementById('feedbackBody');
-  body.innerHTML = '<tr><td colspan="7" class="text-muted">Loading…</td></tr>';
+  body.replaceChildren(adminEmptyRow(7, 'Loading…'));
   try {
     const r = await fetch(API + '/api/admin/feedback', { headers: adminAuthHeaders() });
     const d = await r.json();
-    const rows = d.feedback || [];
-    if (!rows.length) { body.innerHTML = '<tr><td colspan="7" class="text-muted">No feedback yet.</td></tr>'; return; }
-    body.innerHTML = rows.map((f) => {
-      const stars = f.rating ? '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating) : '—';
-      const consent = f.consentPublic ? '✅' : '—';
-      const pub = f.approved ? '<span style="color:#22c55e;">Live</span>' : '<span class="text-muted">Hidden</span>';
-      const esc = (s) => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const canPublish = f.consentPublic;
-      const approveBtn = f.approved
-        ? `<button class="btn btn-secondary btn-sm" onclick="fbApprove('${f.id}',false)">Unpublish</button>`
-        : (canPublish ? `<button class="btn btn-primary btn-sm" onclick="fbApprove('${f.id}',true)">Publish</button>` : '<span class="text-muted" style="font-size:11px;">no consent</span>');
-      const featBtn = f.approved
-        ? `<button class="btn btn-secondary btn-sm" onclick="fbFeature('${f.id}',${f.featured?false:true})" title="Feature">${f.featured?'⭐':'☆'}</button>` : '';
-      const delBtn = `<button class="btn btn-secondary btn-sm" onclick="fbDelete('${f.id}')">🗑</button>`;
-      return `<tr><td>${esc(f.riderName)||'—'}</td><td>${stars}</td><td style="max-width:280px;">${esc(f.comment)||'—'}</td><td style="text-align:center;">${consent}</td><td>${pub}</td><td style="font-size:12px;">${(f.createdAt||'').slice(0,10)}</td><td style="white-space:nowrap;">${approveBtn} ${featBtn} ${delBtn}</td></tr>`;
-    }).join('');
-  } catch { body.innerHTML = '<tr><td colspan="7" class="text-muted">Could not load feedback.</td></tr>'; }
+    renderAdminFeedback(d.feedback || []);
+  } catch {
+    body.replaceChildren(adminEmptyRow(7, 'Could not load feedback.'));
+  }
 }
+
+document.getElementById('feedbackBody').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id || '';
+  if (!id) return;
+  if (btn.dataset.action === 'publish') fbApprove(id, true);
+  if (btn.dataset.action === 'unpublish') fbApprove(id, false);
+  if (btn.dataset.action === 'feature') fbFeature(id, btn.dataset.featured === '1');
+  if (btn.dataset.action === 'delete') fbDelete(id);
+});
 
 async function fbApprove(id, approved) {
   try {
-    const r = await fetch(API + '/api/admin/feedback/' + id + '/approve', { method: 'POST', headers: adminAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ approved }) });
+    const r = await fetch(API + '/api/admin/feedback/' + encodeURIComponent(id) + '/approve', { method: 'POST', headers: adminAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ approved }) });
     const d = await r.json();
     if (d.success) { toast(approved ? 'Published to site' : 'Hidden from site', 'success'); loadAdminFeedback(); }
     else toast(d.error || 'Failed', 'error');
@@ -2659,7 +2703,7 @@ async function fbApprove(id, approved) {
 
 async function fbFeature(id, featured) {
   try {
-    const r = await fetch(API + '/api/admin/feedback/' + id + '/feature', { method: 'POST', headers: adminAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ featured }) });
+    const r = await fetch(API + '/api/admin/feedback/' + encodeURIComponent(id) + '/feature', { method: 'POST', headers: adminAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ featured }) });
     const d = await r.json();
     if (d.success) { toast(featured ? 'Featured' : 'Unfeatured', 'success'); loadAdminFeedback(); }
     else toast(d.error || 'Failed', 'error');
@@ -2669,7 +2713,7 @@ async function fbFeature(id, featured) {
 async function fbDelete(id) {
   if (!confirm('Delete this feedback permanently?')) return;
   try {
-    const r = await fetch(API + '/api/admin/feedback/' + id, { method: 'DELETE', headers: adminAuthHeaders() });
+    const r = await fetch(API + '/api/admin/feedback/' + encodeURIComponent(id), { method: 'DELETE', headers: adminAuthHeaders() });
     const d = await r.json();
     if (d.success) { toast('Deleted', 'success'); loadAdminFeedback(); }
     else toast(d.error || 'Failed', 'error');
@@ -2679,7 +2723,7 @@ async function fbDelete(id) {
 async function adminDeleteRider(id, email) {
   if (!confirm('Delete rider ' + email + '? This also removes their sessions.')) return;
   try {
-    const r = await fetch(API + '/api/admin/riders/' + id, { method: 'DELETE', headers: adminAuthHeaders() });
+    const r = await fetch(API + '/api/admin/riders/' + encodeURIComponent(id), { method: 'DELETE', headers: adminAuthHeaders() });
     const d = await r.json();
     if (d.success) { toast('Rider deleted', 'success'); loadAdminRiders(); }
     else { toast(d.error || 'Delete failed', 'error'); }
@@ -2690,7 +2734,7 @@ async function adminResetRiderPassword(id, firstName) {
   const newPwd = window.prompt(`Enter new password for ${firstName}:`);
   if (!newPwd || newPwd.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
   try {
-    const r = await fetch(API + '/api/admin/riders/' + id + '/reset-password', {
+    const r = await fetch(API + '/api/admin/riders/' + encodeURIComponent(id) + '/reset-password', {
       method: 'POST',
       headers: adminAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ newPassword: newPwd })
@@ -2699,21 +2743,6 @@ async function adminResetRiderPassword(id, firstName) {
     if (d.success) toast('Password updated for ' + firstName);
     else toast(d.error || 'Update failed', 'error');
   } catch { toast('Request failed', 'error'); }
-}
-
-async function deleteSignup(email) {
-  if (!confirm('Delete signup for ' + email + '?')) return;
-  await fetch(API + '/api/admin/signups/' + encodeURIComponent(email), { method: 'DELETE', headers: adminAuthHeaders() });
-  toast('Deleted'); loadAdminData();
-}
-
-function exportCSV() {
-  const rows = window._adminSignups || [];
-  const csv = ['Name,Email,Bike,Track,Experience,Date'].concat(
-    rows.map(r => `"${r.firstName} ${r.lastName}","${r.email}","${r.bike||''}","${r.track||''}","${r.experience||''}","${r.submittedAt||''}"`)
-  ).join('\n');
-  const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = 'beta-signups.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 // ── Charts ────────────────────────────────────────────────────────────────────
@@ -2756,7 +2785,6 @@ function formatTime(sec) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   updateNav();
-  loadBetaCount();
   loadOAuthProviders();
   renderPlanPrices();
   checkUrlReset();

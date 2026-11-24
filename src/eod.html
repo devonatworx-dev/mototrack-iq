@@ -182,67 +182,145 @@ async function loadEOD() {
   const err  = document.getElementById('errorContainer');
   const sumEl = document.getElementById('summaryRow');
   const tblEl = document.getElementById('tableWrap');
-  err.innerHTML = '';
-  sumEl.innerHTML = '<div class="loader"><div class="spinner"></div>Loading…</div>';
-  tblEl.innerHTML = '<div class="loader"><div class="spinner"></div>Loading…</div>';
+  err.replaceChildren();
+  sumEl.replaceChildren();
+  tblEl.replaceChildren();
+  const spin = () => {
+    const wrap = document.createElement('div');
+    wrap.className = 'loader';
+    wrap.appendChild(Object.assign(document.createElement('div'), { className: 'spinner' }));
+    wrap.appendChild(document.createTextNode('Loading…'));
+    return wrap;
+  };
+  sumEl.appendChild(spin());
+  tblEl.appendChild(spin());
   document.getElementById('downloadAllBtn').style.display = 'none';
 
   try {
-    const res  = await fetch(`${API}/eod?date=${date}`);
+    // TODO(device-auth): GET /api/device/eod is called with no credential.
+    // Backend main (527dd73) still serves /api/device/eod, /api/device/sessions/today,
+    // and POST /api/sessions/ingest without auth. A separate backend change is
+    // expected to require auth on those three. No scheme for that auth is in
+    // the backend repo yet — do not invent a token here. When that change is
+    // visible, send the credential it specifies on this fetch.
+    const res  = await fetch(`${API}/eod?date=${encodeURIComponent(date)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     currentData = await res.json();
 
     const { totalSessions, devices, riders, sessions } = currentData;
 
-    // Summary
-    sumEl.innerHTML = `
-      <div class="summary-card"><div class="summary-val">${totalSessions || 0}</div><div class="summary-label">Sessions</div></div>
-      <div class="summary-card"><div class="summary-val">${riders?.length || 0}</div><div class="summary-label">Riders</div></div>
-      <div class="summary-card"><div class="summary-val">${devices?.length || 0}</div><div class="summary-label">Devices</div></div>
-    `;
+    sumEl.replaceChildren(
+      summaryCard(totalSessions || 0, 'Sessions'),
+      summaryCard(riders?.length || 0, 'Riders'),
+      summaryCard(devices?.length || 0, 'Devices')
+    );
 
-    // Table
     if (!sessions || sessions.length === 0) {
-      tblEl.innerHTML = '<div class="empty-state">No sessions recorded on this date.</div>';
+      tblEl.replaceChildren();
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'No sessions recorded on this date.';
+      tblEl.appendChild(empty);
       return;
     }
 
-    tblEl.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>Rider</th><th>Device</th><th>Track</th><th>Bike</th>
-            <th>Laps</th><th>Best Lap</th><th>Top Speed</th><th>Time</th><th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${sessions.map(s => `
-            <tr>
-              <td><span class="tag tag-rider">${s.riderName || '—'}</span></td>
-              <td><span class="tag tag-device">${s.deviceName || '—'}</span></td>
-              <td>${s.track || '—'}</td>
-              <td>${s.bike || '—'}</td>
-              <td>${s.lapCount ?? 0}</td>
-              <td style="font-weight:700;color:var(--accent)">${fmtTime(s.bestLap)}</td>
-              <td>${fmtSpeed(s.analysisData?.metrics?.maxSpeed)}</td>
-              <td style="color:var(--muted)">${fmtTs(s.createdAt)}</td>
-              <td><button class="download-btn" onclick="downloadPDF('${s.id}')">⬇ PDF</button></td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
+    tblEl.replaceChildren(buildEodTable(sessions));
     document.getElementById('downloadAllBtn').style.display = sessions.length > 0 ? 'flex' : 'none';
   } catch (e) {
-    err.innerHTML = `<div class="error-msg">Failed to load: ${e.message}</div>`;
-    sumEl.innerHTML = '';
-    tblEl.innerHTML = '';
+    err.replaceChildren();
+    const box = document.createElement('div');
+    box.className = 'error-msg';
+    box.textContent = 'Failed to load: ' + (e && e.message ? e.message : 'unknown error');
+    err.appendChild(box);
+    sumEl.replaceChildren();
+    tblEl.replaceChildren();
   }
 }
 
+function summaryCard(value, label) {
+  const card = document.createElement('div');
+  card.className = 'summary-card';
+  const val = document.createElement('div');
+  val.className = 'summary-val';
+  val.textContent = value == null ? '0' : String(value);
+  const lab = document.createElement('div');
+  lab.className = 'summary-label';
+  lab.textContent = label;
+  card.append(val, lab);
+  return card;
+}
+
+function eodCell(text, className) {
+  const td = document.createElement('td');
+  if (className) td.className = className;
+  td.textContent = text == null || text === '' ? '—' : String(text);
+  return td;
+}
+
+function buildEodTable(sessions) {
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  ['Rider', 'Device', 'Track', 'Bike', 'Laps', 'Best Lap', 'Top Speed', 'Time', 'Action'].forEach((label) => {
+    const th = document.createElement('th');
+    th.textContent = label;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  const tbody = document.createElement('tbody');
+  sessions.forEach((s) => {
+    const tr = document.createElement('tr');
+    const rider = document.createElement('td');
+    const riderTag = document.createElement('span');
+    riderTag.className = 'tag tag-rider';
+    riderTag.textContent = s.riderName || '—';
+    rider.appendChild(riderTag);
+    const device = document.createElement('td');
+    const deviceTag = document.createElement('span');
+    deviceTag.className = 'tag tag-device';
+    deviceTag.textContent = s.deviceName || '—';
+    device.appendChild(deviceTag);
+    const best = document.createElement('td');
+    best.style.fontWeight = '700';
+    best.style.color = 'var(--accent)';
+    best.textContent = fmtTime(s.bestLap);
+    const when = document.createElement('td');
+    when.style.color = 'var(--muted)';
+    when.textContent = fmtTs(s.createdAt);
+    const action = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'download-btn';
+    btn.textContent = '⬇ PDF';
+    btn.dataset.action = 'download-pdf';
+    btn.dataset.sessionId = s.id == null ? '' : String(s.id);
+    action.appendChild(btn);
+    tr.append(
+      rider,
+      device,
+      eodCell(s.track || '—'),
+      eodCell(s.bike || '—'),
+      eodCell(s.lapCount ?? 0),
+      best,
+      eodCell(fmtSpeed(s.analysisData?.metrics?.maxSpeed)),
+      when,
+      action
+    );
+    tbody.appendChild(tr);
+  });
+  table.append(thead, tbody);
+  return table;
+}
+
+document.getElementById('tableWrap').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action="download-pdf"]');
+  if (!btn) return;
+  downloadPDF(btn.dataset.sessionId || '');
+});
+
 // Reports are protected by a short-lived signed link. Mint one, then navigate.
 async function mintReportUrl(sessionId) {
-  const r = await fetch(`${API}/sessions/${sessionId}/report-link`);
+  const r = await fetch(`${API}/sessions/${encodeURIComponent(sessionId)}/report-link`);
   if (!r.ok) throw new Error('link ' + r.status);
   const { url } = await r.json();
   return window.MTIQ_API_BASE + url;
