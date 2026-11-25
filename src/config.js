@@ -33,7 +33,6 @@
   base = String(base).replace(/\/+$/, '');
 
   window.MTIQ_API_BASE = base;            // root base (auth, sessions, analyze, etc.)
-  window.MTIQ_API_DEVICE = base + '/api/device'; // device-report base (eod, dashboard)
 
   // ── Compatibility facade ────────────────────────────────────────────────
   // Production still runs the June 2026 backend build, which has three bugs
