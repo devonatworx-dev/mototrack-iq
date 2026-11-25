@@ -254,7 +254,6 @@
     <a onclick="showPage('membership'); closeUserDropdown();">Membership</a>
     <a onclick="openPromo(); closeUserDropdown();">Redeem Promo Code</a>
     <a id="ddResetPw" onclick="showPage('reset-pw'); closeUserDropdown();">Reset Password</a>
-    <a onclick="copyBleToken(); closeUserDropdown();">📋 Copy BLE Sync Token</a>
     <div class="divider"></div>
     <a onclick="clearAuth(); showPage('home'); toast('Signed out', 'info'); closeUserDropdown();">Sign Out</a>
   </div>
@@ -944,18 +943,6 @@ function authHeaders() {
   return authToken
     ? { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' }
     : { 'Content-Type': 'application/json' };
-}
-// Copies the rider's JWT so the BLE Sync app can link uploads to this account.
-// The BLE app calls it "Rider Token" (Configuration → Rider Token).
-function copyBleToken() {
-  if (!authToken || authToken === 'demo-token') {
-    toast('Sign in first to get your token', 'error'); return;
-  }
-  navigator.clipboard.writeText(authToken).then(() => {
-    toast('📋 Token copied! Paste it into the BLE Sync app → Configuration → Rider Token', 'success', 5000);
-  }).catch(() => {
-    prompt('Copy this token and paste it into the BLE Sync app:', authToken);
-  });
 }
 
 function persistAuth(token, user) {
