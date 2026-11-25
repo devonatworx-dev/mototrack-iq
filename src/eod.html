@@ -131,6 +131,25 @@
       color: #ff8888; border-radius: 10px; padding: 14px 18px;
       font-size: 13px; margin-bottom: 16px;
     }
+    .sign-in-state {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .sign-in-state h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .sign-in-state p { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+    .sign-in-state a {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -177,11 +196,44 @@ const fmtTs    = (ts) => ts ? new Date(ts).toLocaleTimeString('en-CA', { hour: '
 
 let currentData = null;
 
+// The portal stores the rider JWT in localStorage as mtiq_token (index.html's
+// authToken). Device routes require Authorization: Bearer <that JWT>.
+function riderToken() {
+  try {
+    const token = localStorage.getItem('mtiq_token') || '';
+    return token && token !== 'demo-token' ? token : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function showSignIn() {
+  document.getElementById('errorContainer').replaceChildren();
+  document.getElementById('summaryRow').replaceChildren();
+  const tblEl = document.getElementById('tableWrap');
+  tblEl.replaceChildren();
+  document.getElementById('downloadAllBtn').style.display = 'none';
+  const box = document.createElement('div');
+  box.className = 'sign-in-state';
+  const title = document.createElement('h2');
+  title.textContent = 'Sign in to view';
+  const copy = document.createElement('p');
+  copy.textContent = 'End-of-day sessions are tied to your rider account.';
+  const link = document.createElement('a');
+  link.href = '/?login=1';
+  link.textContent = 'Sign in';
+  box.append(title, copy, link);
+  tblEl.appendChild(box);
+}
+
 async function loadEOD() {
   const date = dateInput.value;
   const err  = document.getElementById('errorContainer');
   const sumEl = document.getElementById('summaryRow');
   const tblEl = document.getElementById('tableWrap');
+  const token = riderToken();
+  if (!token) { showSignIn(); return; }
+
   err.replaceChildren();
   sumEl.replaceChildren();
   tblEl.replaceChildren();
@@ -197,13 +249,10 @@ async function loadEOD() {
   document.getElementById('downloadAllBtn').style.display = 'none';
 
   try {
-    // TODO(device-auth): GET /api/device/eod is called with no credential.
-    // Backend main (527dd73) still serves /api/device/eod, /api/device/sessions/today,
-    // and POST /api/sessions/ingest without auth. A separate backend change is
-    // expected to require auth on those three. No scheme for that auth is in
-    // the backend repo yet — do not invent a token here. When that change is
-    // visible, send the credential it specifies on this fetch.
-    const res  = await fetch(`${API}/eod?date=${encodeURIComponent(date)}`);
+    const res  = await fetch(`${API}/eod?date=${encodeURIComponent(date)}`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (res.status === 401) { showSignIn(); return; }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     currentData = await res.json();
 
@@ -320,7 +369,20 @@ document.getElementById('tableWrap').addEventListener('click', (e) => {
 
 // Reports are protected by a short-lived signed link. Mint one, then navigate.
 async function mintReportUrl(sessionId) {
-  const r = await fetch(`${API}/sessions/${encodeURIComponent(sessionId)}/report-link`);
+  const token = riderToken();
+  if (!token) {
+    const err = new Error('sign-in');
+    err.code = 'auth';
+    throw err;
+  }
+  const r = await fetch(`${API}/sessions/${encodeURIComponent(sessionId)}/report-link`, {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (r.status === 401) {
+    const err = new Error('sign-in');
+    err.code = 'auth';
+    throw err;
+  }
   if (!r.ok) throw new Error('link ' + r.status);
   const { url } = await r.json();
   return window.MTIQ_API_BASE + url;
@@ -331,6 +393,7 @@ async function downloadPDF(sessionId) {
     window.location.href = await mintReportUrl(sessionId);
     setTimeout(function(){ if(window.mtiqOpenReview) window.mtiqOpenReview(); }, 4000);
   } catch (e) {
+    if (e && e.code === 'auth') { showSignIn(); return; }
     alert('Could not open report: ' + e.message);
   }
 }
@@ -348,6 +411,7 @@ async function downloadAll() {
       a.click();
       document.body.removeChild(a);
     } catch (e) {
+      if (e && e.code === 'auth') { showSignIn(); return; }
       console.error('downloadAll: session', s.id, e.message);
     }
   }

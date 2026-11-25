@@ -159,6 +159,27 @@
       color: #ff8888; border-radius: 10px; padding: 14px 18px;
       font-size: 13px; margin-bottom: 16px;
     }
+
+    .sign-in-state {
+      grid-column: 1 / -1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .sign-in-state h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .sign-in-state p { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+    .sign-in-state a {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -203,9 +224,44 @@ const fmtTs   = (ts) => ts ? new Date(ts).toLocaleTimeString('en-CA', { hour: '2
 
 let allSessions = [];
 
+// The portal stores the rider JWT in localStorage as mtiq_token (index.html's
+// authToken). Device routes require Authorization: Bearer <that JWT>.
+function riderToken() {
+  try {
+    const token = localStorage.getItem('mtiq_token') || '';
+    return token && token !== 'demo-token' ? token : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function showSignIn() {
+  clearTimeout(window._rt);
+  document.getElementById('errorContainer').replaceChildren();
+  const grid = document.getElementById('slotGrid');
+  grid.replaceChildren();
+  document.getElementById('todayCount').textContent = '—';
+  document.getElementById('todayDevices').textContent = '—';
+  document.getElementById('lastUpdated').textContent = '—';
+  const box = document.createElement('div');
+  box.className = 'sign-in-state';
+  const title = document.createElement('h2');
+  title.textContent = 'Sign in to view';
+  const copy = document.createElement('p');
+  copy.textContent = 'Device sessions are tied to your rider account.';
+  const link = document.createElement('a');
+  link.href = '/?login=1';
+  link.textContent = 'Sign in';
+  box.append(title, copy, link);
+  grid.appendChild(box);
+}
+
 async function loadData() {
   const err = document.getElementById('errorContainer');
   const grid = document.getElementById('slotGrid');
+  const token = riderToken();
+  if (!token) { showSignIn(); return; }
+
   err.replaceChildren();
   grid.replaceChildren();
   const loading = document.createElement('div');
@@ -215,13 +271,10 @@ async function loadData() {
   grid.appendChild(loading);
 
   try {
-    // TODO(device-auth): GET /api/device/sessions/today is called with no
-    // credential. Backend main (527dd73) still serves it, /api/device/eod, and
-    // POST /api/sessions/ingest without auth. A separate backend change is
-    // expected to require auth on those three. No scheme for that auth is in
-    // the backend repo yet — do not invent a token here. When that change is
-    // visible, send the credential it specifies on this fetch.
-    const res = await fetch(`${API}/sessions/today`);
+    const res = await fetch(`${API}/sessions/today`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (res.status === 401) { showSignIn(); return; }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     allSessions = json.sessions || [];
@@ -354,8 +407,13 @@ document.getElementById('slotGrid').addEventListener('click', (e) => {
 
 // Reports are protected by a short-lived signed link. Mint one, then navigate.
 async function openReport(sessionId) {
+  const token = riderToken();
+  if (!token) { showSignIn(); return; }
   try {
-    const r = await fetch(API + '/sessions/' + encodeURIComponent(sessionId) + '/report-link');
+    const r = await fetch(API + '/sessions/' + encodeURIComponent(sessionId) + '/report-link', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (r.status === 401) { showSignIn(); return; }
     if (!r.ok) throw new Error('link ' + r.status);
     const { url } = await r.json();
     try{ localStorage.setItem('mtiq_viewed_report','1'); }catch(e){}
