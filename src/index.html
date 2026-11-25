@@ -28,6 +28,7 @@
     .consent-check { display: flex; align-items: flex-start; gap: 10px; margin: 8px 0; font-size: 12px; line-height: 1.5; color: var(--muted); cursor: pointer; font-weight: 400; }
     .consent-check input { width: 16px; height: 16px; margin-top: 2px; flex: 0 0 auto; padding: 0; }
     .consent-check span { min-width: 0; }
+    .consent-check a { color: var(--accent2); }
 
     /* ── Nav ── */
     nav {
@@ -522,7 +523,7 @@
         <!-- Login -->
         <div class="auth-form active" id="formLogin">
           <div id="oauth-login" class="oauth-stack"></div>
-          <p class="oauth-note">Existing account? Use the same email you already registered. New riders use Create Account so Ontario residency and email consent are recorded.</p>
+          <p class="oauth-note">Existing account? Use the same email you already registered. New riders use Create Account so Ontario residency and the Terms and Privacy Policy are recorded. Marketing emails are optional.</p>
           <div class="oauth-or">or use email</div>
           <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
           <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Your password"></div>
@@ -591,8 +592,12 @@
             <span>I live in Ontario, Canada. MotoTrackIQ currently serves Ontario residents only.</span>
           </label>
           <label class="consent-check">
-            <input type="checkbox" id="regConsent">
-            <span>I agree to receive account and product emails from MotoTrackIQ. We'll send a confirmation link to verify your address. You can unsubscribe anytime.</span>
+            <input type="checkbox" id="regTerms">
+            <span>I agree to the <a href="/terms.html">Terms of Service</a> and <a href="/privacy.html">Privacy Policy</a>.</span>
+          </label>
+          <label class="consent-check">
+            <input type="checkbox" id="regMarketing">
+            <span>Send me track day tips, offers and MotoTrackIQ news. You can unsubscribe anytime.</span>
           </label>
           <div id="turnstile-register" class="turnstile-slot"></div>
           <button class="btn btn-primary" style="width:100%;" onclick="doRegister()">Send Confirmation Email →</button>
@@ -1277,12 +1282,13 @@ async function doRegister() {
   const email = document.getElementById('regEmail').value.trim();
   if (!first || !last || !email) { toast('Name and email are required', 'error'); return; }
   if (!document.getElementById('regOntario').checked) { toast('MotoTrackIQ is currently available only to Ontario residents.', 'error'); return; }
-  if (!document.getElementById('regConsent').checked) { toast('Please agree to receive confirmation & product emails', 'error'); return; }
+  if (!document.getElementById('regTerms').checked) { toast('Please agree to the Terms of Service and Privacy Policy.', 'error'); return; }
   const check = turnstileFields('turnstile-register');
   if (!check) return;
 
   try {
     const pwd = document.getElementById('regPassword').value;
+    const marketingConsent = document.getElementById('regMarketing').checked === true;
     const payload = {
       firstName: first, lastName: last, email,
       phone: document.getElementById('regPhone').value,
@@ -1290,6 +1296,7 @@ async function doRegister() {
       riderType: document.getElementById('regType').value,
       primaryTrack: document.getElementById('regTrack').value,
       ontarioResident: true,
+      marketingConsent,
       ...check
     };
     // The current backend creates a PENDING account and emails a verification
@@ -1493,7 +1500,7 @@ async function handleVerifyLink(token) {
 const OAUTH_ERRORS = {
   missing_email: 'That provider did not share an email address, so no account was created.',
   email_unverified: 'That email was not verified by the provider, so it was not linked to an existing account.',
-  consent_required: 'New accounts need the email-consent checkbox. Switch to Create Account, tick both boxes, then try the provider again.',
+  consent_required: 'That provider sign-up did not include marketing consent, so no new account was created. Email sign-up works with or without the optional news box.',
   ontario_required: 'MotoTrackIQ currently serves Ontario residents. Tick that box on Create Account, then try again.',
   access_denied: 'Sign-in was cancelled. Nothing was changed.',
   provider_disabled: 'That provider is not available yet.',
@@ -1547,14 +1554,17 @@ function startOAuth(event, provider) {
     toast('Confirm Ontario residency before using a provider.', 'error');
     return false;
   }
-  if (!document.getElementById('regConsent').checked) {
+  if (!document.getElementById('regTerms').checked) {
     event.preventDefault();
-    toast('Agree to account and product emails before using a provider.', 'error');
+    toast('Please agree to the Terms of Service and Privacy Policy.', 'error');
     return false;
   }
+  const marketingConsent = document.getElementById('regMarketing').checked === true;
   const url = new URL((API || '') + '/api/auth/oauth/' + provider + '/start', window.location.origin);
   url.searchParams.set('ontario', '1');
-  url.searchParams.set('consent', '1');
+  // The provider start route still treats consent=1 as product-email opt-in.
+  // Send it only when the optional marketing box is checked.
+  if (marketingConsent) url.searchParams.set('consent', '1');
   event.preventDefault();
   window.location.href = url.toString();
   return false;
