@@ -760,11 +760,11 @@
         <div class="plan-sub">Transponder rental + one event</div>
         <ul class="plan-features">
           <li>✓ Transponder rental</li>
-          <li>✓ One event day, up to 6 sessions</li>
+          <li>✓ Sessions at that event</li>
           <li>✓ Morning and afternoon at the event</li>
           <li>✓ Not sold online</li>
         </ul>
-        <p class="plan-inperson">In-person only. Ask us at the event to add the transponder rental and that event day.</p>
+        <p class="plan-inperson">In-person only. Ask us at the event to add the transponder rental and that event.</p>
       </div>
 
     </div>
@@ -1120,7 +1120,7 @@ function creditLines(ent) {
   }
   const day = ent.dayReport;
   const holdsDaySummary = !!(
-    (day && (day.anyDate || day.season || day.included))
+    (day && (day.anyDate || day.event || day.season || day.included))
     || (passes && ((Array.isArray(passes.event) && passes.event.length) || (Array.isArray(passes.season) && passes.season.length)))
     || ent.unlimited || ent.grandfatheredUnlimited
   );
@@ -2252,7 +2252,24 @@ function sessionDateKey(s) {
   return null;
 }
 
-// Download Day Progress PDF for a given date.
+// New entitlement uses dayReport.minimumSessions (2). Older responses omit it.
+function daySummaryMinimum() {
+  const raw = currentEntitlement && currentEntitlement.dayReport && currentEntitlement.dayReport.minimumSessions;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 2;
+}
+
+function daySummaryNeedsMoreMessage(d) {
+  d = d || {};
+  const count = Number(d.sessionCount);
+  const minRaw = Number(d.minimumSessions);
+  const need = Number.isFinite(minRaw) && minRaw > 0 ? minRaw : daySummaryMinimum();
+  const have = Number.isFinite(count) ? count : 0;
+  return 'A daily progress summary compares all your sessions from the same day. This day has ' +
+    have + (have === 1 ? ' session' : ' sessions') + ' and needs ' + need + ' or more.';
+}
+
+// Download the daily progress summary for a date.
 async function downloadDayReport(date) {
   if (!date) { toast('No date found for this session', 'error'); return; }
   const btn = event?.target && event.target.closest ? (event.target.closest('button') || event.target) : event?.target;
@@ -2268,21 +2285,32 @@ async function downloadDayReport(date) {
         bikeName: currentUser?.bikes || ''
       })
     });
-    // 402: out of credits, or the day report is not included in this plan (Event/Season
-    // only on the newer backend). Older backends return the PDF for any plan.
-    if (r.status === 402) { openPaywall(await readBody(r), 'day-report'); return; }
+    if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
+    if (r.ok) {
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: `MotoTrackIQ-DayProgress-${date}.pdf` });
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Daily progress summary downloaded', 'success');
+      return;
+    }
+    const err = await readBody(r);
+    // 400 paywall:false — the pass is fine; this day does not have enough sessions.
+    // An older server used 404 when the date had no sessions.
+    if (err.code === 'day_report_needs_multiple_sessions') {
+      toast(daySummaryNeedsMoreMessage(err), 'info', 6500);
+      return;
+    }
+    if (r.status === 402 || err.paywall === true || err.code === 'day_report_not_included') {
+      openPaywall(err, 'day-report');
+      return;
+    }
     if (r.status === 404) {
       toast('The daily progress summary is not available on this server yet — use the per-session PDF report.', 'info', 5000);
       return;
     }
-    if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
-    if (!r.ok) { const err = await readBody(r); toast(err.error || err.message || 'Download failed', 'error'); return; }
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), { href: url, download: `MotoTrackIQ-DayProgress-${date}.pdf` });
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('Daily progress summary downloaded', 'success');
+    toast(err.error || err.message || 'Download failed', 'error');
   } catch(e) { toast('Download failed: ' + e.message, 'error'); }
   finally { if (btn) { btn.textContent = label; btn.disabled = false; } }
 }
@@ -2298,7 +2326,7 @@ async function loadDayProgress(sessions) {
     byDate[d].push(s);
   });
 
-  const multiDates = Object.entries(byDate).filter(([, ss]) => ss.length >= 2);
+  const multiDates = Object.entries(byDate).filter(([, ss]) => ss.length >= daySummaryMinimum());
 
   // Render banner for most recent multi-session day
   const banner = document.getElementById('dayProgressBanner');
@@ -2350,6 +2378,25 @@ async function loadDayProgress(sessions) {
   }
 }
 
+function renderThroughTheDay(parent, through) {
+  const steps = through && Array.isArray(through.steps) ? through.steps : [];
+  const comparable = steps.filter((step) => step && step.deltaFromPrevious != null && !isNaN(+step.deltaFromPrevious));
+  if (!comparable.length) return;
+  const list = document.createElement('div');
+  list.style.cssText = 'margin-top:8px;font-size:13px;line-height:1.45;';
+  comparable.forEach((step) => {
+    const delta = Number(step.deltaFromPrevious);
+    const faster = delta < 0;
+    const row = document.createElement('div');
+    row.style.color = faster ? 'var(--green)' : 'var(--muted)';
+    const who = step.name ? ' · ' + step.name : '';
+    row.textContent = 'Session ' + (step.order || '') + who + ': ' + Math.abs(delta).toFixed(2) + 's ' +
+      (faster ? 'faster' : 'slower') + ' than the previous session';
+    list.appendChild(row);
+  });
+  parent.appendChild(list);
+}
+
 function renderDayProgressBanner(banner, d) {
   banner.replaceChildren();
   const card = document.createElement('div');
@@ -2395,6 +2442,8 @@ function renderDayProgressBanner(banner, d) {
   meta.append(document.createTextNode('   ·   ' + d.totalLaps + ' laps   ·   ' + Math.round(d.maxSpeed) + ' km/h top speed'));
 
   left.append(kicker, compare, headline, meta);
+  const through = d.progress && d.progress.summary && d.progress.summary.throughTheDay;
+  if (through) renderThroughTheDay(left, through);
   if (d.progress && Array.isArray(d.progress.notes) && d.progress.notes.length) {
     const notes = document.createElement('div');
     notes.style.cssText = 'margin-top:8px;font-size:12px;color:var(--muted);';
@@ -2737,7 +2786,7 @@ const PAYWALL_COPY = {
   },
   daily_session_cap: {
     title: '6 sessions already saved today',
-    message: 'A pass covers up to 6 sessions on one day. A Single Report covers another session today.'
+    message: 'This Season Pass allows 6 sessions on one event day. An Event Pass or a Single Report covers another session today.'
   },
   season_days_exhausted: {
     title: 'All 8 event days are used',
@@ -2745,15 +2794,11 @@ const PAYWALL_COPY = {
   },
   session_date_required: {
     title: 'This save needs a session date',
-    message: 'An Event Pass or Season Pass needs the session date before it can be used.'
+    message: 'A Season Pass needs the session date before it can be used.'
   },
   day_report_not_included: {
     title: 'Daily progress summary',
     message: 'The daily progress summary compares all your sessions from the same day. It comes with an Event Pass or a Season Pass.'
-  },
-  day_report_needs_multiple_sessions: {
-    title: 'This day needs another session',
-    message: 'The daily progress summary compares all your sessions from the same day. Save another session from this day to open it.'
   }
 };
 
@@ -2765,6 +2810,10 @@ function noteEntitlementFromPaywall(d) {
 
 function openPaywall(d, source) {
   d = d || {};
+  if (d.code === 'day_report_needs_multiple_sessions') {
+    toast(daySummaryNeedsMoreMessage(d), 'info', 6500);
+    return;
+  }
   noteEntitlementFromPaywall(d);
   const code = typeof d.code === 'string' ? d.code : '';
   const known = PAYWALL_COPY[code];
@@ -2789,7 +2838,7 @@ function openPaywall(d, source) {
   if (title) title.textContent = titleText;
   document.getElementById('paywallMsg').textContent = message;
   const plans = document.getElementById('paywallPlans');
-  if (plans) plans.style.display = code === 'day_report_needs_multiple_sessions' ? 'none' : '';
+  if (plans) plans.style.display = '';
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
