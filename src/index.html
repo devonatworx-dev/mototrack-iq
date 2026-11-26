@@ -61,15 +61,25 @@
     .plan-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
     .plan-features { list-style: none; padding: 0; margin: 0 0 20px; text-align: left; font-size: 13px; color: var(--muted); flex: 1; }
     .plan-features li { padding: 5px 0; }
-    /* Membership grid: 4 columns desktop, 2 tablet, 1 mobile. The global
-       ".card + .card" margin pushed cards 2-4 down inside the grid; reset it. */
-    .plan-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; max-width: 1120px; margin: 0 auto; align-items: stretch; }
+    /* Membership grid: 3 columns desktop, 2 tablet, 1 mobile. The global
+       ".card + .card" margin pushed later cards down inside the grid; reset it. */
+    .plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 1080px; margin: 0 auto; align-items: stretch; }
     .plan-grid > .card + .card { margin-top: 0; }
     .plan-grid .plan-card { padding: 24px 20px; }
     .plan-grid .plan-card .btn { justify-content: center; }
     .plan-card .plan-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg,#f97316,#ea580c); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+    .plan-card .plan-badge.inperson { background: #1f2937; color: #e5e7eb; letter-spacing: .4px; }
+    .plan-card.inperson { border-style: dashed; }
     .plan-price small { font-size: .85rem; font-weight: 600; color: var(--muted); margin-left: 2px; }
-    @media (max-width: 1024px) { .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .qty-control { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 8px; }
+    .qty-control button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--card2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; font-family: inherit; padding: 0; }
+    .qty-control button:hover { border-color: var(--accent); }
+    .qty-control input.qty-input { width: 58px; height: 34px; padding: 0 4px; text-align: center; font-weight: 700; -moz-appearance: textfield; appearance: textfield; }
+    .qty-control input.qty-input::-webkit-outer-spin-button,
+    .qty-control input.qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .qty-total { font-size: 12px; color: var(--muted); margin: 0 0 12px; min-height: 16px; }
+    .plan-inperson { margin-top: auto; font-size: 13px; line-height: 1.45; color: var(--muted); background: var(--card2); border-radius: 10px; padding: 12px; }
+    @media (max-width: 900px) { .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 640px)  { .plan-grid { grid-template-columns: 1fr; } }
     .nav-spacer { flex: 1; }
     #authBtn { margin-left: 8px; position: relative; }
@@ -318,7 +328,8 @@
 <div class="page" id="page-upload">
   <div class="container">
     <h2 style="margin-bottom:8px;">Upload Session Data</h2>
-    <p class="text-muted" style="margin-bottom:28px; font-size:14px;">Accepts RaceBox CSV or GPX exports · Max 50MB</p>
+    <p class="text-muted" style="margin-bottom:8px; font-size:14px;">Accepts RaceBox CSV or GPX exports · Max 50MB</p>
+    <p class="text-muted" style="margin-bottom:28px; font-size:13px;">One credit covers one session: saving it and the PDF. Downloading that PDF again is free.</p>
 
     <div class="card">
       <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
@@ -661,25 +672,26 @@
   </div>
 </div>
 
-<!-- ── MEMBERSHIP PAGE (Phase 2 UI shell — selection only, no payment yet) ── -->
+<!-- ── MEMBERSHIP / PRICING ── -->
 <div class="page" id="page-membership">
   <div class="container-wide">
-    <div style="text-align:center;max-width:640px;margin:0 auto 32px;">
+    <div style="text-align:center;max-width:680px;margin:0 auto 32px;">
       <div style="display:inline-block;background:linear-gradient(135deg,#f97316,#0ea5e9);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:14px;">🏁 Membership</div>
       <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:8px;">Choose how you ride with MotoTrackIQ</h2>
-      <p class="text-muted" style="font-size:14px;">Your first report is free. After that, buy a single report, an Event Pass for a full track day, or a Season Pass if you're out there all summer.</p>
-      <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices in Canadian dollars, before tax.</p>
+      <p class="text-muted" style="font-size:14px;">New riders get their first session free (1 credit on signup). One credit covers one session — saving it and the PDF — and downloading that PDF again is free. After that, buy a Single Report, an Event Pass for one day, or a one-time Season Pass.</p>
+      <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices in Canadian dollars, before tax. Online passes are one-time purchases.</p>
     </div>
     <div class="plan-grid">
 
       <div class="card plan-card" data-plan="free">
         <div class="plan-name">Free</div>
         <div class="plan-price">CA$0</div>
-        <div class="plan-sub">Your first report on us</div>
+        <div class="plan-sub">Your first session on us</div>
         <ul class="plan-features">
-          <li>✓ 1 full session report</li>
+          <li>✓ 1 credit when you sign up</li>
+          <li>✓ 1 session: save + PDF</li>
+          <li>✓ Re-downloads are free</li>
           <li>✓ Lap times &amp; top speed</li>
-          <li>✓ Basic dashboard</li>
         </ul>
         <button class="btn btn-secondary" style="width:100%;" onclick="selectPlan('free')">Start free</button>
       </div>
@@ -687,25 +699,31 @@
       <div class="card plan-card" data-plan="single">
         <div class="plan-name">Single Report</div>
         <div class="plan-price" data-price-for="single">CA$—</div>
-        <div class="plan-sub">One more session</div>
+        <div class="plan-sub">1 session</div>
         <ul class="plan-features">
-          <li>✓ 1 report credit</li>
+          <li>✓ 1 session: save + PDF</li>
+          <li>✓ Buy again any time</li>
+          <li>✓ Re-downloads are free</li>
           <li>✓ Sector splits &amp; consistency</li>
-          <li>✓ PDF report + email</li>
-          <li>✓ No commitment</li>
         </ul>
+        <div class="qty-control" role="group" aria-label="Number of single reports">
+          <button type="button" onclick="changeSingleQty(-1)" aria-label="Fewer single reports">−</button>
+          <input id="singleQty" class="qty-input" type="number" min="1" max="24" value="1" inputmode="numeric" aria-label="Quantity" oninput="syncSingleQty(false)" onblur="syncSingleQty(true)">
+          <button type="button" onclick="changeSingleQty(1)" aria-label="More single reports">+</button>
+        </div>
+        <p id="singleQtyTotal" class="qty-total">CA$5.99 before tax</p>
         <button class="btn btn-secondary" style="width:100%;" data-checkout="single" onclick="buyPlan('single', this)">Buy Single Report</button>
       </div>
 
       <div class="card plan-card" data-plan="per_event">
         <div class="plan-name">Event Pass</div>
         <div class="plan-price" data-price-for="event">CA$—</div>
-        <div class="plan-sub">A full track day</div>
+        <div class="plan-sub">One track day</div>
         <ul class="plan-features">
-          <li>✓ 6 report credits</li>
-          <li>✓ Every session of the day</li>
-          <li>✓ Sector splits &amp; consistency</li>
-          <li>✓ PDF report + email</li>
+          <li>✓ Up to 6 sessions in one day</li>
+          <li>✓ Morning and afternoon analysis</li>
+          <li>✓ End-of-day daily progress report</li>
+          <li>✓ One-time purchase</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="event" onclick="buyPlan('event', this)">Buy Event Pass</button>
       </div>
@@ -714,18 +732,33 @@
         <div class="plan-badge">Best value</div>
         <div class="plan-name">Season Pass</div>
         <div class="plan-price" data-price-for="season">CA$—</div>
-        <div class="plan-sub">Unlimited all season</div>
+        <div class="plan-sub">8 event days × up to 6 sessions</div>
         <ul class="plan-features">
-          <li>✓ Unlimited session reports</li>
-          <li>✓ Everything in Event Pass</li>
-          <li>✓ Season-long progression</li>
-          <li>✓ Priority support</li>
+          <li>✓ 8 event days</li>
+          <li>✓ Up to 6 sessions per event day</li>
+          <li>✓ Morning and afternoon analysis</li>
+          <li>✓ End-of-day progress report included</li>
+          <li>✓ Charged once</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="season" onclick="buyPlan('season', this)">Buy Season Pass</button>
       </div>
 
+      <div class="card plan-card inperson" data-plan="in-person">
+        <div class="plan-badge inperson">In-person only</div>
+        <div class="plan-name">Special Event Bundle</div>
+        <div class="plan-price">CA$59.99</div>
+        <div class="plan-sub">Transponder rental + one event</div>
+        <ul class="plan-features">
+          <li>✓ Transponder rental</li>
+          <li>✓ One event day, up to 6 sessions</li>
+          <li>✓ Morning and afternoon at the event</li>
+          <li>✓ Not sold online</li>
+        </ul>
+        <p class="plan-inperson">In-person only. Ask us at the event to add the transponder rental and that event day.</p>
+      </div>
+
     </div>
-    <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:20px;">Pro coaching tier (corner-by-corner, lean &amp; braking traces, heat maps) is coming soon.</p>
+    <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:20px;">One credit is one session. The Special Event Bundle is in person only. Pro coaching (corner-by-corner, lean &amp; braking traces, heat maps) is coming soon.</p>
     <div style="text-align:center;margin-top:16px;">
       <button class="btn btn-secondary" onclick="showPage('sessions')">Skip for now → Go to my sessions</button>
     </div>
@@ -778,8 +811,8 @@
     <button class="mtiq-modal-close" onclick="closePaywall()" aria-label="Close">&times;</button>
     <div style="text-align:center;">
       <div style="font-size:34px;line-height:1;margin-bottom:10px;">🔒</div>
-      <h3 id="paywallTitle" style="font-size:1.3rem;font-weight:700;margin-bottom:6px;">You've used your free report</h3>
-      <p id="paywallMsg" class="text-muted" style="font-size:14px;margin-bottom:20px;">Unlock more reports with a plan, or enter a promo code to add a free report to your account.</p>
+      <h3 id="paywallTitle" style="font-size:1.3rem;font-weight:700;margin-bottom:6px;">You're out of session credits</h3>
+      <p id="paywallMsg" class="text-muted" style="font-size:14px;margin-bottom:20px;">One credit covers one session (save + PDF). Re-downloads are free. Choose a Single Report, Event Pass, or Season Pass, or enter a promo code.</p>
     </div>
 
     <button class="btn btn-primary" style="width:100%;margin-bottom:18px;" onclick="closePaywall(); showPage('membership');">See plans &amp; pricing →</button>
@@ -931,6 +964,8 @@ let currentUser = JSON.parse(localStorage.getItem('mtiq_user') || 'null');
 let authToken = localStorage.getItem('mtiq_token') || null;
 let currentAnalysis = null;
 let currentSessionId = null;
+// Set when this upload has already been saved, so a later PDF click is a free re-download.
+let currentSavedSessionId = null;
 let uploadChart = null;
 let detailChart = null;
 
@@ -1028,20 +1063,59 @@ function highlightSelectedPlan() {
 }
 
 // Prices shown on the Membership page, keyed by backend checkout product.
-// Confirmed in Canadian dollars: Single Report CA$5.99, Event Pass CA$19.99,
-// Season Pass CA$89.99. Set a value to null to show "CA$—" for that product.
+// Canadian dollars, before tax. One-time purchases only:
+//   Single Report CA$5.99, Event Pass CA$19.99, Season Pass CA$89.99.
+// The Special Event Bundle (CA$59.99, transponder rental + one event) is
+// display-only and has no Lemon Squeezy product key.
+// Set a value to null to show "CA$—" for that product.
 const PLAN_PRICES = { single: 'CA$5.99', event: 'CA$19.99', season: 'CA$89.99' };
-const PLAN_PRICE_SUFFIX = { season: '/season' };
+const SINGLE_UNIT_CENTS = 599;
+const SINGLE_QTY_MIN = 1;
+const SINGLE_QTY_MAX = 24;
 
 function renderPlanPrices() {
   document.querySelectorAll('[data-price-for]').forEach(el => {
     const key = el.getAttribute('data-price-for');
     const price = PLAN_PRICES[key];
     el.textContent = price || 'CA$\u2014';
-    if (price && PLAN_PRICE_SUFFIX[key]) {
-      const sm = document.createElement('small'); sm.textContent = PLAN_PRICE_SUFFIX[key]; el.appendChild(sm);
-    }
   });
+  syncSingleQty(true);
+}
+
+function currentSingleQuantity() {
+  const input = document.getElementById('singleQty');
+  const n = parseInt(input && input.value, 10);
+  if (!Number.isFinite(n)) return SINGLE_QTY_MIN;
+  return Math.min(SINGLE_QTY_MAX, Math.max(SINGLE_QTY_MIN, n));
+}
+
+// commit=true rewrites the field (blur, stepper, checkout). While typing, an
+// empty box is left alone so "12" can be entered without snapping back to 1.
+function syncSingleQty(commit) {
+  const input = document.getElementById('singleQty');
+  const raw = parseInt(input && input.value, 10);
+  const invalid = !Number.isFinite(raw);
+  const n = invalid ? SINGLE_QTY_MIN : Math.min(SINGLE_QTY_MAX, Math.max(SINGLE_QTY_MIN, raw));
+  if (input && (commit || (!invalid && raw !== n))) input.value = String(n);
+  const total = document.getElementById('singleQtyTotal');
+  if (total) {
+    const dollars = (n * SINGLE_UNIT_CENTS / 100).toFixed(2);
+    total.textContent = n === 1
+      ? 'CA$5.99 before tax'
+      : (n + ' \u00d7 CA$5.99 = CA$' + dollars + ' before tax');
+  }
+  const btn = document.querySelector('[data-checkout="single"]');
+  if (btn && !btn.disabled) {
+    btn.textContent = n === 1 ? 'Buy Single Report' : ('Buy ' + n + ' Single Reports');
+  }
+  return n;
+}
+
+function changeSingleQty(delta) {
+  const input = document.getElementById('singleQty');
+  if (!input) return;
+  input.value = String(currentSingleQuantity() + delta);
+  syncSingleQty(true);
 }
 
 async function selectPlan(plan) {
@@ -1060,7 +1134,7 @@ async function selectPlan(plan) {
       currentUser.plan = d.plan || plan;
       localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
       highlightSelectedPlan();
-      if (plan === 'free') { showPage('sessions'); toast('You\u2019re on Free. Upload a session to get your report.', 'success'); }
+      if (plan === 'free') { showPage('sessions'); toast('You\u2019re on Free. Your first session is included — upload a file to save it and get the PDF.', 'success'); }
       else toast('Saved.', 'success');
     } else { toast(d.error || 'Could not save plan', 'error'); }
   } catch { toast('Cannot reach server', 'error'); }
@@ -1076,7 +1150,9 @@ function takeAfterLoginPage(fallback) {
 
 // Paid products go through the backend, which creates a hosted Lemon Squeezy
 // checkout for the signed-in rider (POST /api/checkout/:product -> { url }).
-// Backend products: single | event | season. There is no Pro product yet.
+// Backend products: single | event | season. Single accepts { quantity }.
+// Event and Season are one-time (quantity is not sent). The in-person Special
+// Event Bundle is not a product and must not be passed here.
 const CHECKOUT_PRODUCTS = ['single', 'event', 'season'];
 async function buyPlan(product, btn) {
   if (!CHECKOUT_PRODUCTS.includes(product)) { toast('That plan is not available yet.', 'info'); return; }
@@ -1086,11 +1162,13 @@ async function buyPlan(product, btn) {
     toast('Sign in or create an account to buy', 'info');
     return;
   }
+  const body = {};
+  if (product === 'single') body.quantity = syncSingleQty(true);
   const label = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout\u2026'; }
   try {
     const r = await fetch(API + '/api/checkout/' + encodeURIComponent(product), {
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(body)
     });
     const d = await r.json().catch(() => ({}));
     if (r.status === 401) { clearAuth(); showPage('auth'); toast('Your session expired. Sign in again to buy.', 'info'); return; }
@@ -1098,7 +1176,11 @@ async function buyPlan(product, btn) {
     if (r.status === 503) { toast(d.error || 'Payments are not configured yet. Check back soon.', 'info', 5000); return; }
     toast(d.error || 'Could not start checkout. Please try again.', 'error');
   } catch { toast('Cannot reach server', 'error'); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = label; } }
+  finally {
+    if (btn) btn.disabled = false;
+    if (product === 'single') syncSingleQty(true);
+    else if (btn) btn.textContent = label;
+  }
 }
 
 // Back from Lemon Squeezy (?checkout=success): refresh the rider so new credits
@@ -1362,7 +1444,7 @@ async function doSetPassword() {
       persistAuth(d.token, d.rider);
       cleanAuthUrl();
       showPage('sessions');
-      toast('Account activated! Welcome, ' + d.rider.firstName + '! Upload a session to get your free report.', 'success', 5000);
+      toast('Account activated! Welcome, ' + d.rider.firstName + '! Your first session is free — upload a file to save it and get the PDF.', 'success', 5000);
     } else { toast(d.error || 'Could not set password', 'error'); }
   } catch { toast('Cannot reach server', 'error'); }
 }
@@ -1600,7 +1682,7 @@ async function handleOAuthReturn(params) {
       // New riders start on their sessions with one free report credit.
       // Plans stay one click away in the account menu (Membership).
       showPage('sessions');
-      toast('Welcome, ' + (d.rider.firstName || 'rider') + '! Upload a session to get your free report.', 'success', 5000);
+      toast('Welcome, ' + (d.rider.firstName || 'rider') + '! Your first session is free — upload a file to save it and get the PDF.', 'success', 5000);
     } else {
       showPage(takeAfterLoginPage('sessions'));
       toast('Welcome back, ' + (d.rider.firstName || 'rider') + '!', 'success');
@@ -1727,7 +1809,7 @@ function dayReportButton(date) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn btn-secondary btn-sm';
-  btn.title = 'Download Day Progress PDF';
+  btn.title = 'End-of-day progress report (included with Event Pass and Season Pass)';
   btn.textContent = '⬇ Day';
   btn.dataset.action = 'day-report';
   btn.dataset.date = date || '';
@@ -1879,6 +1961,7 @@ dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.
 async function handleFileSelect(file) {
   if (!file) return;
   const text = await file.text();
+  currentSavedSessionId = null;
   dropZone.querySelector('h3').textContent = '⏳ Analysing ' + file.name + '...';
 
   try {
@@ -1886,8 +1969,21 @@ async function handleFileSelect(file) {
     form.append('file', new Blob([text], { type: 'text/csv' }), file.name);
     const r = await apiFetch('/api/analyze', { method: 'POST', body: form,
       headers: authToken ? { 'Authorization': 'Bearer ' + authToken } : {} });
-    const d = await r.json();
+    if (r.status === 402) {
+      openPaywall(await readBody(r), 'analyze');
+      dropZone.querySelector('h3').textContent = 'Drop your CSV or GPX here';
+      return;
+    }
+    if (r.status === 401) {
+      showPage('auth');
+      toast('Please sign in to analyse a session', 'info');
+      dropZone.querySelector('h3').textContent = 'Drop your CSV or GPX here';
+      return;
+    }
+    const d = await readBody(r);
+    if (!r.ok) throw new Error(d.error || ('Analysis failed (' + r.status + ')'));
     const analysis = d.data || d;
+    if (!analysis || typeof analysis !== 'object') throw new Error('Analysis failed');
     currentAnalysis = { ...analysis, fileName: file.name, rawText: text };
     renderUploadResult(analysis, file.name);
   } catch (err) {
@@ -1979,7 +2075,8 @@ function sessionDateKey(s) {
 // Download Day Progress PDF for a given date.
 async function downloadDayReport(date) {
   if (!date) { toast('No date found for this session', 'error'); return; }
-  const btn = event?.target;
+  const btn = event?.target && event.target.closest ? (event.target.closest('button') || event.target) : event?.target;
+  const label = btn ? btn.textContent : '';
   if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   try {
     const r = await fetch(API + '/api/sessions/day-report', {
@@ -1991,12 +2088,15 @@ async function downloadDayReport(date) {
         bikeName: currentUser?.bikes || ''
       })
     });
+    // 402: out of credits, or the day report is not included in this plan (Event/Season
+    // only on the newer backend). Older backends return the PDF for any plan.
+    if (r.status === 402) { openPaywall(await readBody(r), 'day-report'); return; }
     if (r.status === 404) {
       toast('Day Progress PDF is not available on this server yet — use the per-session PDF report.', 'info', 5000);
       return;
     }
     if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
-    if (!r.ok) { const err = await r.json().catch(()=>({})); toast(err.error || 'Download failed', 'error'); return; }
+    if (!r.ok) { const err = await readBody(r); toast(err.error || err.message || 'Download failed', 'error'); return; }
     const blob = await r.blob();
     const url = URL.createObjectURL(blob);
     const a = Object.assign(document.createElement('a'), { href: url, download: `MotoTrackIQ-DayProgress-${date}.pdf` });
@@ -2004,7 +2104,7 @@ async function downloadDayReport(date) {
     URL.revokeObjectURL(url);
     toast('Day Progress PDF downloaded', 'success');
   } catch(e) { toast('Download failed: ' + e.message, 'error'); }
-  finally { if (btn) { btn.textContent = '⬇ Day'; btn.disabled = false; } }
+  finally { if (btn) { btn.textContent = label; btn.disabled = false; } }
 }
 
 // Load day progress data for today and render a banner if 2+ sessions exist on the same day.
@@ -2229,6 +2329,10 @@ function toggleDayGroup(date) {
 async function saveSession() {
   if (!currentAnalysis) return;
   if (!currentUser) { toast('Sign in to save sessions', 'info'); showPage('auth'); return; }
+  if (currentSavedSessionId) {
+    toast('This session is already saved. Downloading the PDF again is free.', 'info');
+    return;
+  }
   const btn = event?.target;
   if (btn) { btn.textContent = '⏳ Saving...'; btn.disabled = true; }
   try {
@@ -2241,8 +2345,11 @@ async function saveSession() {
       })
     });
     if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
-    const d = await r.json();
+    const d = await readBody(r);
+    if (r.status === 402) { openPaywall(d, 'save'); return; }
     if (r.ok && d.session) {
+      currentSavedSessionId = d.session.id;
+      rememberCredits(d.reportCredits != null ? d.reportCredits : (d.entitlement && d.entitlement.reportCredits));
       // Check if this is now part of a multi-session day
       const newDate = d.session.date || new Date().toISOString().slice(0, 10);
       // Re-fetch sessions to count same-day sessions
@@ -2269,18 +2376,105 @@ async function saveSession() {
   }
 }
 
+async function readBody(res) {
+  try { return await res.json(); } catch { return {}; }
+}
+
+function rememberCredits(value) {
+  if (!currentUser || value == null || value === '' || isNaN(+value)) return;
+  currentUser.reportCredits = +value;
+  localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
+}
+
+function savePdfBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function absoluteApiUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = String(API || '').replace(/\/+$/, '');
+  if (!base) return url;
+  return base + (url.charAt(0) === '/' ? url : '/' + url);
+}
+
+// Free re-download of a saved session (GET /api/sessions/:id/report-link).
+// The signed URL does not spend a credit. 'missing' means that route is not
+// on this backend yet, so the caller may fall back to the older generator.
+// Returns 'ok' | 'paywall' | 'auth' | 'missing' | 'fail'.
+async function downloadFreeReport(sessionId) {
+  let r;
+  try {
+    r = await apiFetch('/api/sessions/' + encodeURIComponent(sessionId) + '/report-link', { headers: authHeaders() });
+  } catch {
+    return 'fail';
+  }
+  if (r.status === 402) { openPaywall(await readBody(r), 'report'); return 'paywall'; }
+  if (r.status === 401) return 'auth';
+  if (r.status === 404) return 'missing';
+  if (!r.ok) return 'fail';
+  const d = await readBody(r);
+  const url = absoluteApiUrl(d.url || d.link || d.href || '');
+  if (!url) return 'fail';
+  try {
+    const pdf = await fetch(url);
+    if (pdf.status === 402) { openPaywall(await readBody(pdf), 'report'); return 'paywall'; }
+    if (!pdf.ok) return 'fail';
+    savePdfBlob(await pdf.blob(), 'MotoTrackIQ-Report.pdf');
+    return 'ok';
+  } catch {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return 'ok';
+  }
+}
+
+// Older generator (POST /api/report or POST /api/sessions/:id/report). A 402
+// opens the paywall. Credits may be in a header (older) or absent (newer).
+async function deliverPaidPdf(r) {
+  if (r.status === 402) { openPaywall(await readBody(r), 'report'); return 'paywall'; }
+  if (r.status === 401) return 'auth';
+  if (!r.ok) return 'fail';
+  const askReview = r.headers.get('X-Ask-Review') === '1';
+  rememberCredits(r.headers.get('X-Report-Credits-Remaining'));
+  savePdfBlob(await r.blob(), 'MotoTrackIQ-Report.pdf');
+  if (askReview) setTimeout(openReview, 900);
+  return 'ok';
+}
+
 async function downloadPDF() {
   if (!currentAnalysis) return;
-  const btn = event.target;
-  btn.textContent = '⏳ Generating...'; btn.disabled = true;
+  const btn = event && event.target;
+  if (btn) { btn.textContent = '⏳ Generating...'; btn.disabled = true; }
   try {
+    // Already saved: this click is a re-download and should not spend a credit.
+    if (currentSavedSessionId) {
+      const via = await downloadFreeReport(currentSavedSessionId);
+      if (via === 'ok') { toast('PDF downloaded. Re-downloads are free.'); return; }
+      if (via === 'paywall' || via === 'auth') {
+        if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); }
+        return;
+      }
+      if (via === 'fail') { toast('Could not download the saved report. Try again.', 'error'); return; }
+    }
     const form = new FormData();
     form.append('file', new Blob([currentAnalysis.rawText||''], { type: 'text/csv' }), 'session.csv');
     form.append('riderName', currentUser?.firstName || 'Rider');
-    // Authed + credit-gated: send the token so the server can meter credits.
     let r = await apiFetch('/api/report', { method: 'POST', headers: authToken ? { 'Authorization': 'Bearer ' + authToken } : {}, body: form });
-    // Legacy backend compatibility: /api/report does not exist there (404).
-    // Fall back to save-then-generate via POST /api/sessions/:id/report.
+    // Very old backends have no /api/report. Save (the credit), then prefer the
+    // free report link. Only the missing-link case falls through to the generator.
     if (r.status === 404) {
       const saveR = await apiFetch('/api/sessions', {
         method: 'POST', headers: authHeaders(),
@@ -2290,74 +2484,68 @@ async function downloadPDF() {
           csvContent: currentAnalysis.rawText || ''
         })
       });
-      const saveD = await saveR.json().catch(() => ({}));
-      if (saveR.ok && saveD.session && saveD.session.id) {
-        r = await apiFetch('/api/sessions/' + saveD.session.id + '/report', { method: 'POST', headers: authHeaders() });
+      const saveD = await readBody(saveR);
+      if (saveR.status === 402) { openPaywall(saveD, 'save'); return; }
+      if (saveR.status === 401) { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
+      if (!(saveR.ok && saveD.session && saveD.session.id)) {
+        toast(saveD.error || 'Could not save session', 'error');
+        return;
       }
+      currentSavedSessionId = saveD.session.id;
+      rememberCredits(saveD.reportCredits != null ? saveD.reportCredits : (saveD.entitlement && saveD.entitlement.reportCredits));
+      const via = await downloadFreeReport(saveD.session.id);
+      if (via === 'ok') { toast('PDF downloaded.'); return; }
+      if (via === 'paywall') return;
+      if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
+      if (via === 'fail') { toast('Session saved, but the PDF did not download. Open it from My Sessions.', 'error'); return; }
+      r = await apiFetch('/api/sessions/' + encodeURIComponent(saveD.session.id) + '/report', { method: 'POST', headers: authHeaders() });
     }
-    if (r.status === 402) {
-      let d = {}; try { d = await r.json(); } catch {}
-      openPaywall(d);
-      btn.textContent = '⬇ Download PDF'; btn.disabled = false;
-      return;
-    }
-    if (r.status === 401) { showPage('auth'); toast('Please sign in to download reports', 'info'); btn.textContent = '⬇ Download PDF'; btn.disabled = false; return; }
-    if (!r.ok) throw new Error(r.status);
-    const askReview = r.headers.get('X-Ask-Review') === '1';
-    const remaining = r.headers.get('X-Report-Credits-Remaining');
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'MotoTrackIQ-Report.pdf';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    toast('PDF downloaded!');
-    if (currentUser && remaining !== null && !isNaN(+remaining)) {
-      currentUser.reportCredits = +remaining;
-      localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
-    }
-    if (askReview) setTimeout(openReview, 900);
-  } catch { toast('PDF generation failed', 'error'); }
-  btn.textContent = '⬇ Download PDF'; btn.disabled = false;
+    const via = await deliverPaidPdf(r);
+    if (via === 'ok') toast('PDF downloaded!');
+    else if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); }
+    else if (via === 'fail') toast('PDF generation failed', 'error');
+  } catch {
+    toast('PDF generation failed', 'error');
+  } finally {
+    if (btn) { btn.textContent = '⬇ Download PDF'; btn.disabled = false; }
+  }
 }
 
 async function downloadSessionPDF() {
   if (!currentSessionId) return;
-  toast('Generating PDF...', 'info');
+  toast('Preparing PDF...', 'info');
   try {
-    const r = await apiFetch('/api/sessions/' + currentSessionId + '/report', { method: 'POST', headers: authHeaders() });
-    // Credit-gated: 402 means the rider is out of report credits → show paywall.
-    if (r.status === 402) {
-      let d = {}; try { d = await r.json(); } catch {}
-      openPaywall(d);
-      return;
-    }
-    if (r.status === 401) { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
-    if (!r.ok) throw new Error(r.status);
-    // Capture review-ask + remaining-credit signals before consuming the body.
-    const askReview = r.headers.get('X-Ask-Review') === '1';
-    const remaining = r.headers.get('X-Report-Credits-Remaining');
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'MotoTrackIQ-Report.pdf';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    toast('PDF downloaded!');
-    // Keep the in-memory user's credit count fresh so the UI reflects reality.
-    if (currentUser && remaining !== null && !isNaN(+remaining)) {
-      currentUser.reportCredits = +remaining;
-      localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
-    }
-    // After the FIRST successful report, invite a review (not a bribe — just an ask).
-    if (askReview) setTimeout(openReview, 900);
-  } catch { toast('PDF generation failed — check backend', 'error'); }
+    const via = await downloadFreeReport(currentSessionId);
+    if (via === 'ok') { toast('PDF downloaded. Re-downloads are free.'); return; }
+    if (via === 'paywall') return;
+    if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
+    if (via === 'fail') { toast('Could not download the saved report. Try again.', 'error'); return; }
+    const r = await apiFetch('/api/sessions/' + encodeURIComponent(currentSessionId) + '/report', { method: 'POST', headers: authHeaders() });
+    const paid = await deliverPaidPdf(r);
+    if (paid === 'ok') toast('PDF downloaded!');
+    else if (paid === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); }
+    else if (paid === 'fail') toast('PDF generation failed — check backend', 'error');
+  } catch {
+    toast('PDF generation failed — check backend', 'error');
+  }
 }
 
 // ── Paywall + Promo + Review ───────────────────────────────────────
-function openPaywall(d) {
+// 402 from analyze, save, report, or day-report. The body may be the older
+// "out of tokens" payload or a newer "day report not included" payload.
+function openPaywall(d, source) {
   d = d || {};
-  // Reset to the out-of-credits framing (openPromo may have changed these).
+  const serverMsg = String(d.message || d.error || '').trim();
+  const blob = [serverMsg, d.code, d.reason, d.feature].filter(Boolean).join(' ').toLowerCase();
+  const mentionsDay = /day/.test(blob) && /report|plan|pass|included|progress/.test(blob);
+  const mentionsCredits = /token|credit/.test(blob);
+  const day = mentionsDay || (source === 'day-report' && !mentionsCredits);
   const title = document.getElementById('paywallTitle');
-  if (title) title.textContent = "You've used your free report";
-  document.getElementById('paywallMsg').textContent = d.message ||
-    'Unlock more reports with a plan, or enter a promo code to add a free report to your account.';
+  if (title) title.textContent = day ? 'Daily progress report' : "You're out of session credits";
+  const fallback = day
+    ? 'The end-of-day progress report is included with an Event Pass or a Season Pass.'
+    : 'One credit covers one session (save + PDF). Re-downloads are free. Choose a Single Report, Event Pass, or Season Pass, or enter a promo code.';
+  document.getElementById('paywallMsg').textContent = serverMsg || fallback;
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
@@ -2371,7 +2559,7 @@ function openPromo() {
   const title = document.getElementById('paywallTitle');
   const msg = document.getElementById('paywallMsg');
   if (title) title.textContent = 'Redeem a promo code';
-  if (msg) msg.textContent = 'Have a promo code? Enter it below to add report credits to your account.';
+  if (msg) msg.textContent = 'Have a promo code? Enter it below to add session credits. One credit covers one session (save + PDF). Re-downloads are free.';
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
@@ -2404,7 +2592,7 @@ async function redeemPromo() {
         localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
       }
       result.style.color = '#22c55e';
-      result.textContent = d.message || ('Code applied! ' + (credits !== null ? credits + ' report credit(s) available.' : 'Credit added.'));
+      result.textContent = d.message || ('Code applied! ' + (credits !== null ? credits + ' session credit(s) available.' : 'Credit added.'));
       toast('Promo code applied 🎉', 'success');
       // Close the paywall shortly and let the rider retry their download.
       setTimeout(() => { closePaywall(); toast('Tap Download PDF again to get your report', 'info', 4500); }, 1400);
