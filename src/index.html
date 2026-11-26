@@ -85,10 +85,15 @@
     #authBtn { margin-left: 8px; position: relative; }
 
     /* ── User Dropdown ── */
-    .user-dropdown { position: absolute; top: 64px; right: 24px; background: #0d0d0d; border: 1px solid #1f1f1f; border-radius: 10px; min-width: 180px; z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+    .user-dropdown { position: absolute; top: 64px; right: 24px; background: #0d0d0d; border: 1px solid #1f1f1f; border-radius: 10px; min-width: 280px; max-width: 340px; z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
     .user-dropdown a { display: block; padding: 12px 18px; color: #f9fafb; font-size: 14px; cursor: pointer; transition: background .15s; text-decoration: none; }
     .user-dropdown a:hover { background: #161616; }
     .user-dropdown .divider { border-top: 1px solid #1f1f1f; margin: 4px 0; }
+    .account-credits { padding: 12px 18px 10px; border-bottom: 1px solid #1f1f1f; }
+    .account-credits-title { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #f9fafb; margin-bottom: 6px; }
+    .credit-line { margin: 0 0 6px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .credits-strip { margin-bottom: 20px; padding: 16px 20px; }
+    .credits-strip .credit-line { font-size: 13px; }
 
     /* ── Password Strength ── */
     .pw-strength { margin-top: 6px; }
@@ -260,6 +265,10 @@
   <div class="nav-spacer"></div>
   <button class="nav-link" id="authBtn" onclick="showPage('auth')">Login</button>
   <div class="user-dropdown" id="userDropdown" style="display:none;">
+    <div id="accountCredits" class="account-credits" hidden>
+      <div class="account-credits-title">Your credits</div>
+      <div id="accountCreditsBody"></div>
+    </div>
     <a onclick="showPage('sessions'); closeUserDropdown();">My Sessions</a>
     <a id="ddEditName" onclick="openEditName(); closeUserDropdown();">Edit name</a>
     <a onclick="showPage('membership'); closeUserDropdown();">Membership</a>
@@ -381,6 +390,7 @@
       </div>
       <button class="btn btn-primary" onclick="requireAuth(() => showPage('upload'))">📤 Upload New</button>
     </div>
+    <div id="creditsStrip" class="card credits-strip" style="display:none;"></div>
     <div class="card" id="sessionsContainer">
       <div class="empty-state" id="sessionsEmpty" style="display:none;">
         <div class="icon">🏁</div>
@@ -966,6 +976,11 @@ let currentAnalysis = null;
 let currentSessionId = null;
 // Set when this upload has already been saved, so a later PDF click is a free re-download.
 let currentSavedSessionId = null;
+// Latest GET /api/sessions/entitlement. reportCredits is the flexible Single
+// balance only. Uploads are gated on canGenerate, which is also true when an
+// Event or Season pass can pay. Null until that route answers (older servers).
+let currentEntitlement = null;
+let entitlementState = 'unknown';
 let uploadChart = null;
 let detailChart = null;
 
@@ -990,9 +1005,11 @@ function persistAuth(token, user) {
   localStorage.setItem('mtiq_token', token);
   localStorage.setItem('mtiq_user', JSON.stringify(user));
   updateNav();
+  refreshEntitlement();
 }
 function clearAuth() {
-  authToken = null; currentUser = null;
+  authToken = null; currentUser = null; currentEntitlement = null;
+  entitlementState = 'unknown';
   localStorage.removeItem('mtiq_token');
   localStorage.removeItem('mtiq_user');
   updateNav();
@@ -1015,6 +1032,130 @@ function updateNav() {
     if (dropdown) dropdown.style.display = 'none';
     if (navDemo) navDemo.style.display = '';
     if (navBeta) navBeta.style.display = '';
+  }
+  renderAccountCredits();
+}
+
+// canGenerate is the upload gate. reportCredits is only the flexible Single
+// balance, so a rider with 0 singles and a usable Event or Season pass can
+// still save. Missing canGenerate (a server that predates the field) does not
+// block here — the save response still decides.
+function generationBlocked() {
+  return !!(currentEntitlement && currentEntitlement.canGenerate === false);
+}
+
+function applyEntitlement(ent) {
+  if (!ent || typeof ent !== 'object') return;
+  const prev = currentEntitlement || {};
+  currentEntitlement = Object.assign({}, prev, ent);
+  if (!ent.passes && prev.passes) currentEntitlement.passes = prev.passes;
+  if (!ent.dayReport && prev.dayReport) currentEntitlement.dayReport = prev.dayReport;
+  if (currentUser) {
+    if (ent.reportCredits != null) currentUser.reportCredits = ent.reportCredits;
+    if (ent.plan) currentUser.plan = ent.plan;
+    if (typeof ent.canGenerate === 'boolean') currentUser.canGenerate = ent.canGenerate;
+    localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
+  }
+  renderAccountCredits();
+}
+
+async function refreshEntitlement() {
+  if (!authToken) { currentEntitlement = null; entitlementState = 'unknown'; renderAccountCredits(); return null; }
+  try {
+    const r = await fetch(API + '/api/sessions/entitlement', { headers: authHeaders() });
+    if (r.status === 404) { entitlementState = 'unsupported'; renderAccountCredits(); return currentEntitlement; }
+    if (!r.ok) return currentEntitlement;
+    const d = await readBody(r);
+    const ent = d.entitlement || d;
+    if (ent && (typeof ent.canGenerate === 'boolean' || ent.reportCredits != null || ent.passes)) {
+      entitlementState = 'ready';
+      applyEntitlement(ent);
+    }
+  } catch {}
+  return currentEntitlement;
+}
+
+function creditLine(text) {
+  const p = document.createElement('p');
+  p.className = 'credit-line';
+  p.textContent = text;
+  return p;
+}
+
+function passLabel(list, index) {
+  return list.length > 1 ? ' ' + (index + 1) : '';
+}
+
+function creditLines(ent) {
+  if (!ent) {
+    if (entitlementState === 'unsupported' && currentUser && currentUser.reportCredits != null) {
+      return ['Single credits: ' + Number(currentUser.reportCredits)];
+    }
+    return ['Loading your passes…'];
+  }
+  const lines = [];
+  if (ent.unlimited || ent.grandfatheredUnlimited) {
+    lines.push('Session saves: included with your current plan');
+  } else if (ent.reportCredits != null && ent.reportCredits !== '') {
+    const n = Number(ent.reportCredits);
+    lines.push('Single credits: ' + (Number.isFinite(n) ? n : 0));
+  }
+  const passes = ent.passes;
+  if (passes && (Array.isArray(passes.event) || Array.isArray(passes.season))) {
+    const events = Array.isArray(passes.event) ? passes.event : [];
+    const seasons = Array.isArray(passes.season) ? passes.season : [];
+    events.forEach((g, i) => {
+      const left = Number(g.creditsRemaining);
+      const total = Number(g.creditsTotal) || 6;
+      const day = g.boundDate ? ('tied to ' + g.boundDate) : 'not tied to a day yet';
+      lines.push('Event Pass' + passLabel(events, i) + ': ' + left + ' of ' + total + ' sessions, ' + day);
+    });
+    seasons.forEach((g, i) => {
+      const left = Number(g.creditsRemaining);
+      const total = Number(g.creditsTotal) || 48;
+      const used = Number(g.daysUsed) || 0;
+      const maxDays = Number(g.maxDays) || 8;
+      lines.push('Season Pass' + passLabel(seasons, i) + ': ' + left + ' of ' + total + ' sessions, ' + used + ' of ' + maxDays + ' event days used');
+    });
+    if (!events.length && !seasons.length) lines.push('No Event Pass or Season Pass yet');
+  }
+  const day = ent.dayReport;
+  if (day && typeof day === 'object') {
+    if (day.anyDate) lines.push('Daily progress report: any day you have sessions');
+    else if (Array.isArray(day.eventDates) && day.eventDates.length) {
+      lines.push('Daily progress report: ' + day.eventDates.join(', '));
+    } else lines.push('Daily progress report: included with an Event Pass or Season Pass');
+  }
+  return lines;
+}
+
+function renderAccountCredits() {
+  const menu = document.getElementById('accountCredits');
+  const menuBody = document.getElementById('accountCreditsBody');
+  const strip = document.getElementById('creditsStrip');
+  if (menu && menuBody) {
+    if (!currentUser) {
+      menu.hidden = true;
+      menuBody.replaceChildren();
+    } else {
+      menu.hidden = false;
+      menuBody.replaceChildren();
+      creditLines(currentEntitlement).forEach((line) => menuBody.appendChild(creditLine(line)));
+    }
+  }
+  if (strip) {
+    if (!currentUser || !currentEntitlement) {
+      strip.style.display = 'none';
+      strip.replaceChildren();
+    } else {
+      strip.style.display = '';
+      strip.replaceChildren();
+      const title = document.createElement('div');
+      title.className = 'account-credits-title';
+      title.textContent = 'Your credits';
+      strip.appendChild(title);
+      creditLines(currentEntitlement).forEach((line) => strip.appendChild(creditLine(line)));
+    }
   }
 }
 
@@ -1197,6 +1338,7 @@ async function handleCheckoutReturn() {
         const d = await r.json();
         if (d.rider) { persistAuth(authToken, Object.assign({}, currentUser || {}, d.rider)); }
       }
+      await refreshEntitlement();
     } catch {}
     await new Promise(res => setTimeout(res, 2500));
   }
@@ -1965,6 +2107,12 @@ async function handleFileSelect(file) {
   dropZone.querySelector('h3').textContent = '⏳ Analysing ' + file.name + '...';
 
   try {
+    if (authToken) await refreshEntitlement();
+    if (generationBlocked()) {
+      openPaywall({ code: 'out_of_credits', paywall: true }, 'analyze');
+      dropZone.querySelector('h3').textContent = 'Drop your CSV or GPX here';
+      return;
+    }
     const form = new FormData();
     form.append('file', new Blob([text], { type: 'text/csv' }), file.name);
     const r = await apiFetch('/api/analyze', { method: 'POST', body: form,
@@ -2055,6 +2203,39 @@ function renderCoaching(a, containerId) {
 // The backend has returned this field as an ISO string, a 'YYYY-MM-DD' string,
 // and a numeric epoch (ms) depending on the build. Calling .slice() on a
 // number throws, which used to wipe the whole sessions table.
+// Calendar day for a save. A YYYY-MM-DD prefix is kept as written so an evening
+// timestamp is not moved to the next day through UTC. Epochs use the local
+// calendar. The backend charges Event and Season passes against this day.
+function calendarDay(value) {
+  if (value == null || value === '') return null;
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return null;
+    return value.getFullYear() + '-' + String(value.getMonth() + 1).padStart(2, '0') + '-' + String(value.getDate()).padStart(2, '0');
+  }
+  if (typeof value === 'number' || (typeof value === 'string' && /^\d+(\.\d+)?$/.test(String(value).trim()))) {
+    const d = new Date(Number(value));
+    return isNaN(d.getTime()) ? null : calendarDay(d);
+  }
+  if (typeof value === 'string') {
+    const t = value.trim();
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+    if (m) {
+      const y = +m[1], mo = +m[2], d = +m[3];
+      const dt = new Date(y, mo - 1, d);
+      if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+      return m[1] + '-' + m[2] + '-' + m[3];
+    }
+    const parsed = new Date(t);
+    return isNaN(parsed.getTime()) ? null : calendarDay(parsed);
+  }
+  return null;
+}
+
+function sessionDayForSave(analysis) {
+  const summary = analysis && analysis.summary;
+  return calendarDay(summary && summary.sessionDate) || calendarDay(new Date());
+}
+
 function sessionDateKey(s) {
   if (!s) return null;
   const raw = s.date || (s.analysisData && s.analysisData.summary && s.analysisData.summary.sessionDate);
@@ -2336,11 +2517,17 @@ async function saveSession() {
   const btn = event?.target;
   if (btn) { btn.textContent = '⏳ Saving...'; btn.disabled = true; }
   try {
+    if (authToken) await refreshEntitlement();
+    if (generationBlocked()) {
+      openPaywall({ code: 'out_of_credits', paywall: true }, 'save');
+      return;
+    }
+    const sessionDay = sessionDayForSave(currentAnalysis);
     const r = await fetch(API + '/api/sessions', {
       method: 'POST', headers: authHeaders(),
       body: JSON.stringify({
         track: currentAnalysis.summary?.trackName || 'Session',
-        date: currentAnalysis.summary?.sessionDate || new Date().toISOString(),
+        date: sessionDay,
         csvContent: currentAnalysis.rawText || ''
       })
     });
@@ -2349,9 +2536,9 @@ async function saveSession() {
     if (r.status === 402) { openPaywall(d, 'save'); return; }
     if (r.ok && d.session) {
       currentSavedSessionId = d.session.id;
-      rememberCredits(d.reportCredits != null ? d.reportCredits : (d.entitlement && d.entitlement.reportCredits));
-      // Check if this is now part of a multi-session day
-      const newDate = d.session.date || new Date().toISOString().slice(0, 10);
+      if (d.entitlement) applyEntitlement(d.entitlement);
+      else rememberCredits(d.reportCredits);
+      const newDate = calendarDay(d.session.date) || sessionDay;
       // Re-fetch sessions to count same-day sessions
       let sameDayCount = 1;
       try {
@@ -2366,6 +2553,7 @@ async function saveSession() {
       } else {
         toast('Session saved to your account! 🏍️', 'success');
       }
+      if (d.askReview) setTimeout(openReview, 900);
     } else {
       toast(d.error || 'Could not save session', 'error');
     }
@@ -2384,6 +2572,12 @@ function rememberCredits(value) {
   if (!currentUser || value == null || value === '' || isNaN(+value)) return;
   currentUser.reportCredits = +value;
   localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
+  // Flexible balance only. Do not recompute canGenerate from it — an Event
+  // or Season pass can still pay when this number is 0.
+  if (currentEntitlement) {
+    currentEntitlement.reportCredits = +value;
+    renderAccountCredits();
+  }
 }
 
 function savePdfBlob(blob, filename) {
@@ -2480,7 +2674,7 @@ async function downloadPDF() {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({
           track: currentAnalysis.summary?.trackName || 'Session',
-          date: currentAnalysis.summary?.sessionDate || new Date().toISOString(),
+          date: sessionDayForSave(currentAnalysis),
           csvContent: currentAnalysis.rawText || ''
         })
       });
@@ -2492,7 +2686,8 @@ async function downloadPDF() {
         return;
       }
       currentSavedSessionId = saveD.session.id;
-      rememberCredits(saveD.reportCredits != null ? saveD.reportCredits : (saveD.entitlement && saveD.entitlement.reportCredits));
+      if (saveD.entitlement) applyEntitlement(saveD.entitlement);
+      else rememberCredits(saveD.reportCredits);
       const via = await downloadFreeReport(saveD.session.id);
       if (via === 'ok') { toast('PDF downloaded.'); return; }
       if (via === 'paywall') return;
@@ -2530,22 +2725,70 @@ async function downloadSessionPDF() {
   }
 }
 
-// ── Paywall + Promo + Review ───────────────────────────────────────
-// 402 from analyze, save, report, or day-report. The body may be the older
-// "out of tokens" payload or a newer "day report not included" payload.
+// 402 codes from the pass-based backend, plus the older "out of tokens" body
+// that has no code. reportCredits in the body is the flexible Single balance
+// and is not what decides the dialog.
+const PAYWALL_COPY = {
+  out_of_credits: {
+    title: "You're out of session credits",
+    message: 'One credit covers one session (save + PDF). Re-downloads are free. A Single Report, an Event Pass, or a Season Pass adds more.'
+  },
+  daily_session_cap: {
+    title: '6 sessions already saved today',
+    message: 'An Event Pass or Season Pass covers up to 6 sessions on one event day. A Single Report covers another session today.'
+  },
+  season_days_exhausted: {
+    title: 'All 8 event days are used',
+    message: 'This Season Pass covers 8 event days. An Event Pass or a Single Report covers another day.'
+  },
+  event_day_locked: {
+    title: 'Event Pass is tied to another day',
+    message: 'This Event Pass is already in use on a different day. A Single Report or another pass covers this date.'
+  },
+  session_date_required: {
+    title: 'This save needs a session date',
+    message: 'An Event Pass or Season Pass needs the session date before it can be used.'
+  },
+  day_report_not_included: {
+    title: 'Daily progress report',
+    message: 'The end-of-day progress report comes with an Event Pass for that event day, or with a Season Pass.'
+  }
+};
+
+function noteEntitlementFromPaywall(d) {
+  if (!d || typeof d !== 'object') return;
+  if (d.canGenerate == null && d.dayReport == null && d.reportCredits == null && !d.passes) return;
+  applyEntitlement(d.entitlement && typeof d.entitlement === 'object' ? d.entitlement : d);
+}
+
 function openPaywall(d, source) {
   d = d || {};
-  const serverMsg = String(d.message || d.error || '').trim();
-  const blob = [serverMsg, d.code, d.reason, d.feature].filter(Boolean).join(' ').toLowerCase();
-  const mentionsDay = /day/.test(blob) && /report|plan|pass|included|progress/.test(blob);
-  const mentionsCredits = /token|credit/.test(blob);
-  const day = mentionsDay || (source === 'day-report' && !mentionsCredits);
+  noteEntitlementFromPaywall(d);
+  const code = typeof d.code === 'string' ? d.code : '';
+  const known = PAYWALL_COPY[code];
+  const serverMsg = String(d.message || '').trim();
+  const genericTokens = /^out of tokens\b/i.test(serverMsg);
+  let titleText;
+  let message;
+  if (known) {
+    titleText = known.title;
+    message = (!serverMsg || genericTokens) ? known.message : serverMsg;
+    if (code === 'event_day_locked' && d.boundDate && message.indexOf(String(d.boundDate)) === -1) {
+      message = 'This Event Pass is for ' + d.boundDate + '. A Single Report or another pass covers a different day.';
+    }
+  } else {
+    const blob = [serverMsg, d.error, d.reason, d.feature].filter(Boolean).join(' ').toLowerCase();
+    const mentionsDay = /day/.test(blob) && /report|plan|pass|included|progress/.test(blob);
+    const mentionsCredits = /token|credit/.test(blob);
+    const day = mentionsDay || (source === 'day-report' && !mentionsCredits);
+    titleText = day ? 'Daily progress report' : "You're out of session credits";
+    message = serverMsg || (day
+      ? PAYWALL_COPY.day_report_not_included.message
+      : PAYWALL_COPY.out_of_credits.message);
+  }
   const title = document.getElementById('paywallTitle');
-  if (title) title.textContent = day ? 'Daily progress report' : "You're out of session credits";
-  const fallback = day
-    ? 'The end-of-day progress report is included with an Event Pass or a Season Pass.'
-    : 'One credit covers one session (save + PDF). Re-downloads are free. Choose a Single Report, Event Pass, or Season Pass, or enter a promo code.';
-  document.getElementById('paywallMsg').textContent = serverMsg || fallback;
+  if (title) title.textContent = titleText;
+  document.getElementById('paywallMsg').textContent = message;
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
@@ -2586,11 +2829,14 @@ async function redeemPromo() {
       return;
     }
     if (r.ok && d.success !== false) {
-      const credits = (d.entitlement && d.entitlement.reportCredits != null) ? d.entitlement.reportCredits : (d.reportCredits ?? d.credits ?? null);
-      if (currentUser && credits !== null) {
-        currentUser.reportCredits = credits;
-        localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
+      if (d.entitlement) applyEntitlement(d.entitlement);
+      else {
+        const credits = (d.reportCredits != null) ? d.reportCredits : (d.credits != null ? d.credits : null);
+        rememberCredits(credits);
       }
+      const credits = currentEntitlement && currentEntitlement.reportCredits != null
+        ? currentEntitlement.reportCredits
+        : (d.reportCredits != null ? d.reportCredits : (d.credits != null ? d.credits : null));
       result.style.color = '#22c55e';
       result.textContent = d.message || ('Code applied! ' + (credits !== null ? credits + ' session credit(s) available.' : 'Credit added.'));
       toast('Promo code applied 🎉', 'success');
@@ -2973,6 +3219,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadOAuthProviders();
   renderPlanPrices();
   checkUrlReset();
+  if (authToken) refreshEntitlement();
 });
 </script>
 </body>
