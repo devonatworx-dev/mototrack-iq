@@ -732,7 +732,7 @@
         <ul class="plan-features">
           <li>✓ 6 sessions, use them across any track days</li>
           <li>✓ Morning and afternoon analysis</li>
-          <li>✓ Day summary when a day has 2 or more sessions</li>
+          <li>✓ Daily progress summary: compare all your sessions from the same day</li>
           <li>✓ One-time purchase</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="event" onclick="buyPlan('event', this)">Buy Event Pass</button>
@@ -747,7 +747,7 @@
           <li>✓ 8 event days</li>
           <li>✓ Up to 6 sessions per event day</li>
           <li>✓ Morning and afternoon analysis</li>
-          <li>✓ Day summary when a day has 2 or more sessions</li>
+          <li>✓ Daily progress summary: compare all your sessions from the same day</li>
           <li>✓ Charged once</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="season" onclick="buyPlan('season', this)">Buy Season Pass</button>
@@ -1124,8 +1124,8 @@ function creditLines(ent) {
     || (passes && ((Array.isArray(passes.event) && passes.event.length) || (Array.isArray(passes.season) && passes.season.length)))
     || ent.unlimited || ent.grandfatheredUnlimited
   );
-  if (holdsDaySummary) lines.push('Daily progress report: any day with 2 or more sessions');
-  else if (day && typeof day === 'object') lines.push('Daily progress report: included with an Event Pass or Season Pass');
+  if (holdsDaySummary) lines.push('Daily progress summary: compare all your sessions from the same day');
+  else if (day && typeof day === 'object') lines.push('Daily progress summary: included with an Event Pass or Season Pass');
   return lines;
 }
 
@@ -1951,8 +1951,8 @@ function dayReportButton(date) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn btn-secondary btn-sm';
-  btn.title = 'Day summary for a day with 2 or more sessions (Event Pass or Season Pass)';
-  btn.textContent = '⬇ Day';
+  btn.title = 'Daily progress summary: compare all your sessions from the same day';
+  btn.textContent = '⬇ Daily summary';
   btn.dataset.action = 'day-report';
   btn.dataset.date = date || '';
   return btn;
@@ -2272,7 +2272,7 @@ async function downloadDayReport(date) {
     // only on the newer backend). Older backends return the PDF for any plan.
     if (r.status === 402) { openPaywall(await readBody(r), 'day-report'); return; }
     if (r.status === 404) {
-      toast('Day Progress PDF is not available on this server yet — use the per-session PDF report.', 'info', 5000);
+      toast('The daily progress summary is not available on this server yet — use the per-session PDF report.', 'info', 5000);
       return;
     }
     if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
@@ -2282,7 +2282,7 @@ async function downloadDayReport(date) {
     const a = Object.assign(document.createElement('a'), { href: url, download: `MotoTrackIQ-DayProgress-${date}.pdf` });
     a.click();
     URL.revokeObjectURL(url);
-    toast('Day Progress PDF downloaded', 'success');
+    toast('Daily progress summary downloaded', 'success');
   } catch(e) { toast('Download failed: ' + e.message, 'error'); }
   finally { if (btn) { btn.textContent = label; btn.disabled = false; } }
 }
@@ -2362,7 +2362,11 @@ function renderDayProgressBanner(banner, d) {
 
   const kicker = document.createElement('div');
   kicker.style.cssText = 'font-size:.75rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px;';
-  kicker.textContent = 'Day Progress · ' + d.label + ' · ' + d.sessions2.length + ' sessions';
+  kicker.textContent = 'Daily progress summary · ' + d.label + ' · ' + d.sessions2.length + ' sessions';
+
+  const compare = document.createElement('div');
+  compare.style.cssText = 'font-size:13px;color:var(--text);margin-bottom:6px;';
+  compare.textContent = 'Compare all your sessions from this day.';
 
   const headline = document.createElement('div');
   headline.style.cssText = 'font-size:1.5rem;font-weight:800;margin-bottom:6px;';
@@ -2390,7 +2394,7 @@ function renderDayProgressBanner(banner, d) {
   }
   meta.append(document.createTextNode('   ·   ' + d.totalLaps + ' laps   ·   ' + Math.round(d.maxSpeed) + ' km/h top speed'));
 
-  left.append(kicker, headline, meta);
+  left.append(kicker, compare, headline, meta);
   if (d.progress && Array.isArray(d.progress.notes) && d.progress.notes.length) {
     const notes = document.createElement('div');
     notes.style.cssText = 'margin-top:8px;font-size:12px;color:var(--muted);';
@@ -2408,7 +2412,7 @@ function renderDayProgressBanner(banner, d) {
   btn.type = 'button';
   btn.className = 'btn btn-primary btn-sm';
   btn.style.flexShrink = '0';
-  btn.textContent = '⬇ Day Progress PDF';
+  btn.textContent = '⬇ Daily progress summary';
   btn.addEventListener('click', () => downloadDayReport(d.topDate));
 
   row.append(left, btn);
@@ -2547,7 +2551,7 @@ async function saveSession() {
         }
       } catch(_) {}
       if (sameDayCount >= 2) {
-        toast(`Session saved! You now have ${sameDayCount} sessions today. Ready for Day Progress! 🏍️`, 'success');
+        toast('Session saved! You now have ' + sameDayCount + ' sessions today. Your daily progress summary can compare them.', 'success');
       } else {
         toast('Session saved to your account! 🏍️', 'success');
       }
@@ -2744,12 +2748,12 @@ const PAYWALL_COPY = {
     message: 'An Event Pass or Season Pass needs the session date before it can be used.'
   },
   day_report_not_included: {
-    title: 'Daily progress report',
-    message: 'The day summary comes with an Event Pass or a Season Pass, on any day with 2 or more sessions.'
+    title: 'Daily progress summary',
+    message: 'The daily progress summary compares all your sessions from the same day. It comes with an Event Pass or a Season Pass.'
   },
   day_report_needs_multiple_sessions: {
     title: 'This day needs another session',
-    message: 'The day summary is available once this day has 2 or more sessions. It is included with an Event Pass or a Season Pass.'
+    message: 'The daily progress summary compares all your sessions from the same day. Save another session from this day to open it.'
   }
 };
 
@@ -2776,7 +2780,7 @@ function openPaywall(d, source) {
     const mentionsDay = /day/.test(blob) && /report|plan|pass|included|progress/.test(blob);
     const mentionsCredits = /token|credit/.test(blob);
     const day = mentionsDay || (source === 'day-report' && !mentionsCredits);
-    titleText = day ? 'Daily progress report' : "You're out of session credits";
+    titleText = day ? 'Daily progress summary' : "You're out of session credits";
     message = serverMsg || (day
       ? PAYWALL_COPY.day_report_not_included.message
       : PAYWALL_COPY.out_of_credits.message);
