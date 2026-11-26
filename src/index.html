@@ -688,7 +688,7 @@
     <div style="text-align:center;max-width:680px;margin:0 auto 32px;">
       <div style="display:inline-block;background:linear-gradient(135deg,#f97316,#0ea5e9);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:14px;">🏁 Membership</div>
       <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:8px;">Choose how you ride with MotoTrackIQ</h2>
-      <p class="text-muted" style="font-size:14px;">New riders get their first session free (1 credit on signup). One credit covers one session — saving it and the PDF — and downloading that PDF again is free. After that, buy a Single Report, an Event Pass for one day, or a one-time Season Pass.</p>
+      <p class="text-muted" style="font-size:14px;">New riders get their first session free (1 credit on signup). One credit covers one session — saving it and the PDF — and downloading that PDF again is free. After that, buy a Single Report, an Event Pass (6 sessions across any track days), or a one-time Season Pass.</p>
       <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices in Canadian dollars, before tax. Online passes are one-time purchases.</p>
     </div>
     <div class="plan-grid">
@@ -728,11 +728,11 @@
       <div class="card plan-card" data-plan="per_event">
         <div class="plan-name">Event Pass</div>
         <div class="plan-price" data-price-for="event">CA$—</div>
-        <div class="plan-sub">One track day</div>
+        <div class="plan-sub">6 sessions, any track days</div>
         <ul class="plan-features">
-          <li>✓ Up to 6 sessions in one day</li>
+          <li>✓ 6 sessions, use them across any track days</li>
           <li>✓ Morning and afternoon analysis</li>
-          <li>✓ End-of-day daily progress report</li>
+          <li>✓ Day summary when a day has 2 or more sessions</li>
           <li>✓ One-time purchase</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="event" onclick="buyPlan('event', this)">Buy Event Pass</button>
@@ -747,7 +747,7 @@
           <li>✓ 8 event days</li>
           <li>✓ Up to 6 sessions per event day</li>
           <li>✓ Morning and afternoon analysis</li>
-          <li>✓ End-of-day progress report included</li>
+          <li>✓ Day summary when a day has 2 or more sessions</li>
           <li>✓ Charged once</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="season" onclick="buyPlan('season', this)">Buy Season Pass</button>
@@ -825,7 +825,7 @@
       <p id="paywallMsg" class="text-muted" style="font-size:14px;margin-bottom:20px;">One credit covers one session (save + PDF). Re-downloads are free. Choose a Single Report, Event Pass, or Season Pass, or enter a promo code.</p>
     </div>
 
-    <button class="btn btn-primary" style="width:100%;margin-bottom:18px;" onclick="closePaywall(); showPage('membership');">See plans &amp; pricing →</button>
+    <button id="paywallPlans" class="btn btn-primary" style="width:100%;margin-bottom:18px;" onclick="closePaywall(); showPage('membership');">See plans &amp; pricing →</button>
 
     <div class="mtiq-divider"><span>or</span></div>
 
@@ -1107,8 +1107,7 @@ function creditLines(ent) {
     events.forEach((g, i) => {
       const left = Number(g.creditsRemaining);
       const total = Number(g.creditsTotal) || 6;
-      const day = g.boundDate ? ('tied to ' + g.boundDate) : 'not tied to a day yet';
-      lines.push('Event Pass' + passLabel(events, i) + ': ' + left + ' of ' + total + ' sessions, ' + day);
+      lines.push('Event Pass' + passLabel(events, i) + ': ' + left + ' of ' + total + ' sessions');
     });
     seasons.forEach((g, i) => {
       const left = Number(g.creditsRemaining);
@@ -1120,12 +1119,13 @@ function creditLines(ent) {
     if (!events.length && !seasons.length) lines.push('No Event Pass or Season Pass yet');
   }
   const day = ent.dayReport;
-  if (day && typeof day === 'object') {
-    if (day.anyDate) lines.push('Daily progress report: any day you have sessions');
-    else if (Array.isArray(day.eventDates) && day.eventDates.length) {
-      lines.push('Daily progress report: ' + day.eventDates.join(', '));
-    } else lines.push('Daily progress report: included with an Event Pass or Season Pass');
-  }
+  const holdsDaySummary = !!(
+    (day && (day.anyDate || day.season || day.included))
+    || (passes && ((Array.isArray(passes.event) && passes.event.length) || (Array.isArray(passes.season) && passes.season.length)))
+    || ent.unlimited || ent.grandfatheredUnlimited
+  );
+  if (holdsDaySummary) lines.push('Daily progress report: any day with 2 or more sessions');
+  else if (day && typeof day === 'object') lines.push('Daily progress report: included with an Event Pass or Season Pass');
   return lines;
 }
 
@@ -1951,7 +1951,7 @@ function dayReportButton(date) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn btn-secondary btn-sm';
-  btn.title = 'End-of-day progress report (included with Event Pass and Season Pass)';
+  btn.title = 'Day summary for a day with 2 or more sessions (Event Pass or Season Pass)';
   btn.textContent = '⬇ Day';
   btn.dataset.action = 'day-report';
   btn.dataset.date = date || '';
@@ -1982,7 +1982,6 @@ function sessionRow(s) {
   const lapsCell = document.createElement('td');
   lapsCell.appendChild(lapBadge(s.lapCount || s.analysisData?.laps?.length));
   const action = document.createElement('td');
-  action.appendChild(dayReportButton(sessionDateKey(s) || ''));
   const when = sessionDateKey(s);
   tr.append(
     td(when ? new Date(when + 'T12:00:00').toLocaleDateString() : (s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—')),
@@ -2485,7 +2484,6 @@ function renderDayGroups(tbody, multiDates) {
       childBadge.textContent = lapCount + ' laps';
       childLaps.appendChild(childBadge);
       const childAction = document.createElement('td');
-      childAction.appendChild(dayReportButton(date));
       child.append(
         when,
         td(s.track || '—'),
@@ -2735,15 +2733,11 @@ const PAYWALL_COPY = {
   },
   daily_session_cap: {
     title: '6 sessions already saved today',
-    message: 'An Event Pass or Season Pass covers up to 6 sessions on one event day. A Single Report covers another session today.'
+    message: 'A pass covers up to 6 sessions on one day. A Single Report covers another session today.'
   },
   season_days_exhausted: {
     title: 'All 8 event days are used',
     message: 'This Season Pass covers 8 event days. An Event Pass or a Single Report covers another day.'
-  },
-  event_day_locked: {
-    title: 'Event Pass is tied to another day',
-    message: 'This Event Pass is already in use on a different day. A Single Report or another pass covers this date.'
   },
   session_date_required: {
     title: 'This save needs a session date',
@@ -2751,7 +2745,11 @@ const PAYWALL_COPY = {
   },
   day_report_not_included: {
     title: 'Daily progress report',
-    message: 'The end-of-day progress report comes with an Event Pass for that event day, or with a Season Pass.'
+    message: 'The day summary comes with an Event Pass or a Season Pass, on any day with 2 or more sessions.'
+  },
+  day_report_needs_multiple_sessions: {
+    title: 'This day needs another session',
+    message: 'The day summary is available once this day has 2 or more sessions. It is included with an Event Pass or a Season Pass.'
   }
 };
 
@@ -2773,9 +2771,6 @@ function openPaywall(d, source) {
   if (known) {
     titleText = known.title;
     message = (!serverMsg || genericTokens) ? known.message : serverMsg;
-    if (code === 'event_day_locked' && d.boundDate && message.indexOf(String(d.boundDate)) === -1) {
-      message = 'This Event Pass is for ' + d.boundDate + '. A Single Report or another pass covers a different day.';
-    }
   } else {
     const blob = [serverMsg, d.error, d.reason, d.feature].filter(Boolean).join(' ').toLowerCase();
     const mentionsDay = /day/.test(blob) && /report|plan|pass|included|progress/.test(blob);
@@ -2789,11 +2784,17 @@ function openPaywall(d, source) {
   const title = document.getElementById('paywallTitle');
   if (title) title.textContent = titleText;
   document.getElementById('paywallMsg').textContent = message;
+  const plans = document.getElementById('paywallPlans');
+  if (plans) plans.style.display = code === 'day_report_needs_multiple_sessions' ? 'none' : '';
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
 }
-function closePaywall() { document.getElementById('paywallOverlay').classList.remove('open'); }
+function closePaywall() {
+  document.getElementById('paywallOverlay').classList.remove('open');
+  const plans = document.getElementById('paywallPlans');
+  if (plans) plans.style.display = '';
+}
 
 // Open the promo modal voluntarily (from the account menu) — reuses the paywall
 // modal but with promo-first framing so it doesn't imply the rider is out of credits.
@@ -2803,6 +2804,8 @@ function openPromo() {
   const msg = document.getElementById('paywallMsg');
   if (title) title.textContent = 'Redeem a promo code';
   if (msg) msg.textContent = 'Have a promo code? Enter it below to add session credits. One credit covers one session (save + PDF). Re-downloads are free.';
+  const plans = document.getElementById('paywallPlans');
+  if (plans) plans.style.display = '';
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
