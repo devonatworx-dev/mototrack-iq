@@ -61,24 +61,39 @@
     .plan-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
     .plan-features { list-style: none; padding: 0; margin: 0 0 20px; text-align: left; font-size: 13px; color: var(--muted); flex: 1; }
     .plan-features li { padding: 5px 0; }
-    /* Membership grid: 4 columns desktop, 2 tablet, 1 mobile. The global
-       ".card + .card" margin pushed cards 2-4 down inside the grid; reset it. */
-    .plan-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; max-width: 1120px; margin: 0 auto; align-items: stretch; }
+    /* Membership grid: 3 columns desktop, 2 tablet, 1 mobile. The global
+       ".card + .card" margin pushed later cards down inside the grid; reset it. */
+    .plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 1080px; margin: 0 auto; align-items: stretch; }
     .plan-grid > .card + .card { margin-top: 0; }
     .plan-grid .plan-card { padding: 24px 20px; }
     .plan-grid .plan-card .btn { justify-content: center; }
     .plan-card .plan-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg,#f97316,#ea580c); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+    .plan-card .plan-badge.inperson { background: #1f2937; color: #e5e7eb; letter-spacing: .4px; }
+    .plan-card.inperson { border-style: dashed; }
     .plan-price small { font-size: .85rem; font-weight: 600; color: var(--muted); margin-left: 2px; }
-    @media (max-width: 1024px) { .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .qty-control { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 8px; }
+    .qty-control button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--card2); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; font-family: inherit; padding: 0; }
+    .qty-control button:hover { border-color: var(--accent); }
+    .qty-control input.qty-input { width: 58px; height: 34px; padding: 0 4px; text-align: center; font-weight: 700; -moz-appearance: textfield; appearance: textfield; }
+    .qty-control input.qty-input::-webkit-outer-spin-button,
+    .qty-control input.qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .qty-total { font-size: 12px; color: var(--muted); margin: 0 0 12px; min-height: 16px; }
+    .plan-inperson { margin-top: auto; font-size: 13px; line-height: 1.45; color: var(--muted); background: var(--card2); border-radius: 10px; padding: 12px; }
+    @media (max-width: 900px) { .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 640px)  { .plan-grid { grid-template-columns: 1fr; } }
     .nav-spacer { flex: 1; }
     #authBtn { margin-left: 8px; position: relative; }
 
     /* ── User Dropdown ── */
-    .user-dropdown { position: absolute; top: 64px; right: 24px; background: #0d0d0d; border: 1px solid #1f1f1f; border-radius: 10px; min-width: 180px; z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+    .user-dropdown { position: absolute; top: 64px; right: 24px; background: #0d0d0d; border: 1px solid #1f1f1f; border-radius: 10px; min-width: 280px; max-width: 340px; z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
     .user-dropdown a { display: block; padding: 12px 18px; color: #f9fafb; font-size: 14px; cursor: pointer; transition: background .15s; text-decoration: none; }
     .user-dropdown a:hover { background: #161616; }
     .user-dropdown .divider { border-top: 1px solid #1f1f1f; margin: 4px 0; }
+    .account-credits { padding: 12px 18px 10px; border-bottom: 1px solid #1f1f1f; }
+    .account-credits-title { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #f9fafb; margin-bottom: 6px; }
+    .credit-line { margin: 0 0 6px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .credits-strip { margin-bottom: 20px; padding: 16px 20px; }
+    .credits-strip .credit-line { font-size: 13px; }
 
     /* ── Password Strength ── */
     .pw-strength { margin-top: 6px; }
@@ -250,6 +265,10 @@
   <div class="nav-spacer"></div>
   <button class="nav-link" id="authBtn" onclick="showPage('auth')">Login</button>
   <div class="user-dropdown" id="userDropdown" style="display:none;">
+    <div id="accountCredits" class="account-credits" hidden>
+      <div class="account-credits-title">Your credits</div>
+      <div id="accountCreditsBody"></div>
+    </div>
     <a onclick="showPage('sessions'); closeUserDropdown();">My Sessions</a>
     <a id="ddEditName" onclick="openEditName(); closeUserDropdown();">Edit name</a>
     <a onclick="showPage('membership'); closeUserDropdown();">Membership</a>
@@ -318,7 +337,8 @@
 <div class="page" id="page-upload">
   <div class="container">
     <h2 style="margin-bottom:8px;">Upload Session Data</h2>
-    <p class="text-muted" style="margin-bottom:28px; font-size:14px;">Accepts RaceBox CSV or GPX exports · Max 50MB</p>
+    <p class="text-muted" style="margin-bottom:8px; font-size:14px;">Accepts RaceBox CSV or GPX exports · Max 50MB</p>
+    <p class="text-muted" style="margin-bottom:28px; font-size:13px;">One credit covers one session: saving it and the PDF. Downloading that PDF again is free.</p>
 
     <div class="card">
       <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
@@ -370,6 +390,7 @@
       </div>
       <button class="btn btn-primary" onclick="requireAuth(() => showPage('upload'))">📤 Upload New</button>
     </div>
+    <div id="creditsStrip" class="card credits-strip" style="display:none;"></div>
     <div class="card" id="sessionsContainer">
       <div class="empty-state" id="sessionsEmpty" style="display:none;">
         <div class="icon">🏁</div>
@@ -661,25 +682,26 @@
   </div>
 </div>
 
-<!-- ── MEMBERSHIP PAGE (Phase 2 UI shell — selection only, no payment yet) ── -->
+<!-- ── MEMBERSHIP / PRICING ── -->
 <div class="page" id="page-membership">
   <div class="container-wide">
-    <div style="text-align:center;max-width:640px;margin:0 auto 32px;">
+    <div style="text-align:center;max-width:680px;margin:0 auto 32px;">
       <div style="display:inline-block;background:linear-gradient(135deg,#f97316,#0ea5e9);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:14px;">🏁 Membership</div>
       <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:8px;">Choose how you ride with MotoTrackIQ</h2>
-      <p class="text-muted" style="font-size:14px;">Your first report is free. After that, buy a single report, an Event Pass for a full track day, or a Season Pass if you're out there all summer.</p>
-      <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices in Canadian dollars, before tax.</p>
+      <p class="text-muted" style="font-size:14px;">New riders get their first session free (1 credit on signup). One credit covers one session — saving it and the PDF — and downloading that PDF again is free. After that, buy a Single Report, an Event Pass (6 sessions across any track days), or a one-time Season Pass.</p>
+      <p id="planCheckoutNote" style="font-size:12px;color:var(--muted);margin-top:8px;">Secure checkout by Lemon Squeezy. Prices in Canadian dollars, before tax. Online passes are one-time purchases.</p>
     </div>
     <div class="plan-grid">
 
       <div class="card plan-card" data-plan="free">
         <div class="plan-name">Free</div>
         <div class="plan-price">CA$0</div>
-        <div class="plan-sub">Your first report on us</div>
+        <div class="plan-sub">Your first session on us</div>
         <ul class="plan-features">
-          <li>✓ 1 full session report</li>
+          <li>✓ 1 credit when you sign up</li>
+          <li>✓ 1 session: save + PDF</li>
+          <li>✓ Re-downloads are free</li>
           <li>✓ Lap times &amp; top speed</li>
-          <li>✓ Basic dashboard</li>
         </ul>
         <button class="btn btn-secondary" style="width:100%;" onclick="selectPlan('free')">Start free</button>
       </div>
@@ -687,25 +709,31 @@
       <div class="card plan-card" data-plan="single">
         <div class="plan-name">Single Report</div>
         <div class="plan-price" data-price-for="single">CA$—</div>
-        <div class="plan-sub">One more session</div>
+        <div class="plan-sub">1 session</div>
         <ul class="plan-features">
-          <li>✓ 1 report credit</li>
+          <li>✓ 1 session: save + PDF</li>
+          <li>✓ Buy again any time</li>
+          <li>✓ Re-downloads are free</li>
           <li>✓ Sector splits &amp; consistency</li>
-          <li>✓ PDF report + email</li>
-          <li>✓ No commitment</li>
         </ul>
+        <div class="qty-control" role="group" aria-label="Number of single reports">
+          <button type="button" onclick="changeSingleQty(-1)" aria-label="Fewer single reports">−</button>
+          <input id="singleQty" class="qty-input" type="number" min="1" max="24" value="1" inputmode="numeric" aria-label="Quantity" oninput="syncSingleQty(false)" onblur="syncSingleQty(true)">
+          <button type="button" onclick="changeSingleQty(1)" aria-label="More single reports">+</button>
+        </div>
+        <p id="singleQtyTotal" class="qty-total">CA$5.99 before tax</p>
         <button class="btn btn-secondary" style="width:100%;" data-checkout="single" onclick="buyPlan('single', this)">Buy Single Report</button>
       </div>
 
       <div class="card plan-card" data-plan="per_event">
         <div class="plan-name">Event Pass</div>
         <div class="plan-price" data-price-for="event">CA$—</div>
-        <div class="plan-sub">A full track day</div>
+        <div class="plan-sub">6 sessions, any track days</div>
         <ul class="plan-features">
-          <li>✓ 6 report credits</li>
-          <li>✓ Every session of the day</li>
-          <li>✓ Sector splits &amp; consistency</li>
-          <li>✓ PDF report + email</li>
+          <li>✓ 6 sessions, use them across any track days</li>
+          <li>✓ Morning and afternoon analysis</li>
+          <li>✓ Daily progress summary: compare all your sessions from the same day</li>
+          <li>✓ One-time purchase</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="event" onclick="buyPlan('event', this)">Buy Event Pass</button>
       </div>
@@ -714,18 +742,33 @@
         <div class="plan-badge">Best value</div>
         <div class="plan-name">Season Pass</div>
         <div class="plan-price" data-price-for="season">CA$—</div>
-        <div class="plan-sub">Unlimited all season</div>
+        <div class="plan-sub">8 event days × up to 6 sessions</div>
         <ul class="plan-features">
-          <li>✓ Unlimited session reports</li>
-          <li>✓ Everything in Event Pass</li>
-          <li>✓ Season-long progression</li>
-          <li>✓ Priority support</li>
+          <li>✓ 8 event days</li>
+          <li>✓ Up to 6 sessions per event day</li>
+          <li>✓ Morning and afternoon analysis</li>
+          <li>✓ Daily progress summary: compare all your sessions from the same day</li>
+          <li>✓ Charged once</li>
         </ul>
         <button class="btn btn-primary" style="width:100%;" data-checkout="season" onclick="buyPlan('season', this)">Buy Season Pass</button>
       </div>
 
+      <div class="card plan-card inperson" data-plan="in-person">
+        <div class="plan-badge inperson">In-person only</div>
+        <div class="plan-name">Special Event Bundle</div>
+        <div class="plan-price">CA$59.99</div>
+        <div class="plan-sub">Transponder rental + one event</div>
+        <ul class="plan-features">
+          <li>✓ Transponder rental</li>
+          <li>✓ Sessions at that event</li>
+          <li>✓ Morning and afternoon at the event</li>
+          <li>✓ Not sold online</li>
+        </ul>
+        <p class="plan-inperson">In-person only. Ask us at the event to add the transponder rental and that event.</p>
+      </div>
+
     </div>
-    <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:20px;">Pro coaching tier (corner-by-corner, lean &amp; braking traces, heat maps) is coming soon.</p>
+    <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:20px;">One credit is one session. The Special Event Bundle is in person only. Pro coaching (corner-by-corner, lean &amp; braking traces, heat maps) is coming soon.</p>
     <div style="text-align:center;margin-top:16px;">
       <button class="btn btn-secondary" onclick="showPage('sessions')">Skip for now → Go to my sessions</button>
     </div>
@@ -778,11 +821,11 @@
     <button class="mtiq-modal-close" onclick="closePaywall()" aria-label="Close">&times;</button>
     <div style="text-align:center;">
       <div style="font-size:34px;line-height:1;margin-bottom:10px;">🔒</div>
-      <h3 id="paywallTitle" style="font-size:1.3rem;font-weight:700;margin-bottom:6px;">You've used your free report</h3>
-      <p id="paywallMsg" class="text-muted" style="font-size:14px;margin-bottom:20px;">Unlock more reports with a plan, or enter a promo code to add a free report to your account.</p>
+      <h3 id="paywallTitle" style="font-size:1.3rem;font-weight:700;margin-bottom:6px;">You're out of session credits</h3>
+      <p id="paywallMsg" class="text-muted" style="font-size:14px;margin-bottom:20px;">One credit covers one session (save + PDF). Re-downloads are free. Choose a Single Report, Event Pass, or Season Pass, or enter a promo code.</p>
     </div>
 
-    <button class="btn btn-primary" style="width:100%;margin-bottom:18px;" onclick="closePaywall(); showPage('membership');">See plans &amp; pricing →</button>
+    <button id="paywallPlans" class="btn btn-primary" style="width:100%;margin-bottom:18px;" onclick="closePaywall(); showPage('membership');">See plans &amp; pricing →</button>
 
     <div class="mtiq-divider"><span>or</span></div>
 
@@ -931,6 +974,13 @@ let currentUser = JSON.parse(localStorage.getItem('mtiq_user') || 'null');
 let authToken = localStorage.getItem('mtiq_token') || null;
 let currentAnalysis = null;
 let currentSessionId = null;
+// Set when this upload has already been saved, so a later PDF click is a free re-download.
+let currentSavedSessionId = null;
+// Latest GET /api/sessions/entitlement. reportCredits is the flexible Single
+// balance only. Uploads are gated on canGenerate, which is also true when an
+// Event or Season pass can pay. Null until that route answers (older servers).
+let currentEntitlement = null;
+let entitlementState = 'unknown';
 let uploadChart = null;
 let detailChart = null;
 
@@ -955,9 +1005,11 @@ function persistAuth(token, user) {
   localStorage.setItem('mtiq_token', token);
   localStorage.setItem('mtiq_user', JSON.stringify(user));
   updateNav();
+  refreshEntitlement();
 }
 function clearAuth() {
-  authToken = null; currentUser = null;
+  authToken = null; currentUser = null; currentEntitlement = null;
+  entitlementState = 'unknown';
   localStorage.removeItem('mtiq_token');
   localStorage.removeItem('mtiq_user');
   updateNav();
@@ -980,6 +1032,130 @@ function updateNav() {
     if (dropdown) dropdown.style.display = 'none';
     if (navDemo) navDemo.style.display = '';
     if (navBeta) navBeta.style.display = '';
+  }
+  renderAccountCredits();
+}
+
+// canGenerate is the upload gate. reportCredits is only the flexible Single
+// balance, so a rider with 0 singles and a usable Event or Season pass can
+// still save. Missing canGenerate (a server that predates the field) does not
+// block here — the save response still decides.
+function generationBlocked() {
+  return !!(currentEntitlement && currentEntitlement.canGenerate === false);
+}
+
+function applyEntitlement(ent) {
+  if (!ent || typeof ent !== 'object') return;
+  const prev = currentEntitlement || {};
+  currentEntitlement = Object.assign({}, prev, ent);
+  if (!ent.passes && prev.passes) currentEntitlement.passes = prev.passes;
+  if (!ent.dayReport && prev.dayReport) currentEntitlement.dayReport = prev.dayReport;
+  if (currentUser) {
+    if (ent.reportCredits != null) currentUser.reportCredits = ent.reportCredits;
+    if (ent.plan) currentUser.plan = ent.plan;
+    if (typeof ent.canGenerate === 'boolean') currentUser.canGenerate = ent.canGenerate;
+    localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
+  }
+  renderAccountCredits();
+}
+
+async function refreshEntitlement() {
+  if (!authToken) { currentEntitlement = null; entitlementState = 'unknown'; renderAccountCredits(); return null; }
+  try {
+    const r = await fetch(API + '/api/sessions/entitlement', { headers: authHeaders() });
+    if (r.status === 404) { entitlementState = 'unsupported'; renderAccountCredits(); return currentEntitlement; }
+    if (!r.ok) return currentEntitlement;
+    const d = await readBody(r);
+    const ent = d.entitlement || d;
+    if (ent && (typeof ent.canGenerate === 'boolean' || ent.reportCredits != null || ent.passes)) {
+      entitlementState = 'ready';
+      applyEntitlement(ent);
+    }
+  } catch {}
+  return currentEntitlement;
+}
+
+function creditLine(text) {
+  const p = document.createElement('p');
+  p.className = 'credit-line';
+  p.textContent = text;
+  return p;
+}
+
+function passLabel(list, index) {
+  return list.length > 1 ? ' ' + (index + 1) : '';
+}
+
+function creditLines(ent) {
+  if (!ent) {
+    if (entitlementState === 'unsupported' && currentUser && currentUser.reportCredits != null) {
+      return ['Single credits: ' + Number(currentUser.reportCredits)];
+    }
+    return ['Loading your passes…'];
+  }
+  const lines = [];
+  if (ent.unlimited || ent.grandfatheredUnlimited) {
+    lines.push('Session saves: included with your current plan');
+  } else if (ent.reportCredits != null && ent.reportCredits !== '') {
+    const n = Number(ent.reportCredits);
+    lines.push('Single credits: ' + (Number.isFinite(n) ? n : 0));
+  }
+  const passes = ent.passes;
+  if (passes && (Array.isArray(passes.event) || Array.isArray(passes.season))) {
+    const events = Array.isArray(passes.event) ? passes.event : [];
+    const seasons = Array.isArray(passes.season) ? passes.season : [];
+    events.forEach((g, i) => {
+      const left = Number(g.creditsRemaining);
+      const total = Number(g.creditsTotal) || 6;
+      lines.push('Event Pass' + passLabel(events, i) + ': ' + left + ' of ' + total + ' sessions');
+    });
+    seasons.forEach((g, i) => {
+      const left = Number(g.creditsRemaining);
+      const total = Number(g.creditsTotal) || 48;
+      const used = Number(g.daysUsed) || 0;
+      const maxDays = Number(g.maxDays) || 8;
+      lines.push('Season Pass' + passLabel(seasons, i) + ': ' + left + ' of ' + total + ' sessions, ' + used + ' of ' + maxDays + ' event days used');
+    });
+    if (!events.length && !seasons.length) lines.push('No Event Pass or Season Pass yet');
+  }
+  const day = ent.dayReport;
+  const holdsDaySummary = !!(
+    (day && (day.anyDate || day.event || day.season || day.included))
+    || (passes && ((Array.isArray(passes.event) && passes.event.length) || (Array.isArray(passes.season) && passes.season.length)))
+    || ent.unlimited || ent.grandfatheredUnlimited
+  );
+  if (holdsDaySummary) lines.push('Daily progress summary: compare all your sessions from the same day');
+  else if (day && typeof day === 'object') lines.push('Daily progress summary: included with an Event Pass or Season Pass');
+  return lines;
+}
+
+function renderAccountCredits() {
+  const menu = document.getElementById('accountCredits');
+  const menuBody = document.getElementById('accountCreditsBody');
+  const strip = document.getElementById('creditsStrip');
+  if (menu && menuBody) {
+    if (!currentUser) {
+      menu.hidden = true;
+      menuBody.replaceChildren();
+    } else {
+      menu.hidden = false;
+      menuBody.replaceChildren();
+      creditLines(currentEntitlement).forEach((line) => menuBody.appendChild(creditLine(line)));
+    }
+  }
+  if (strip) {
+    if (!currentUser || !currentEntitlement) {
+      strip.style.display = 'none';
+      strip.replaceChildren();
+    } else {
+      strip.style.display = '';
+      strip.replaceChildren();
+      const title = document.createElement('div');
+      title.className = 'account-credits-title';
+      title.textContent = 'Your credits';
+      strip.appendChild(title);
+      creditLines(currentEntitlement).forEach((line) => strip.appendChild(creditLine(line)));
+    }
   }
 }
 
@@ -1028,20 +1204,59 @@ function highlightSelectedPlan() {
 }
 
 // Prices shown on the Membership page, keyed by backend checkout product.
-// Confirmed in Canadian dollars: Single Report CA$5.99, Event Pass CA$19.99,
-// Season Pass CA$89.99. Set a value to null to show "CA$—" for that product.
+// Canadian dollars, before tax. One-time purchases only:
+//   Single Report CA$5.99, Event Pass CA$19.99, Season Pass CA$89.99.
+// The Special Event Bundle (CA$59.99, transponder rental + one event) is
+// display-only and has no Lemon Squeezy product key.
+// Set a value to null to show "CA$—" for that product.
 const PLAN_PRICES = { single: 'CA$5.99', event: 'CA$19.99', season: 'CA$89.99' };
-const PLAN_PRICE_SUFFIX = { season: '/season' };
+const SINGLE_UNIT_CENTS = 599;
+const SINGLE_QTY_MIN = 1;
+const SINGLE_QTY_MAX = 24;
 
 function renderPlanPrices() {
   document.querySelectorAll('[data-price-for]').forEach(el => {
     const key = el.getAttribute('data-price-for');
     const price = PLAN_PRICES[key];
     el.textContent = price || 'CA$\u2014';
-    if (price && PLAN_PRICE_SUFFIX[key]) {
-      const sm = document.createElement('small'); sm.textContent = PLAN_PRICE_SUFFIX[key]; el.appendChild(sm);
-    }
   });
+  syncSingleQty(true);
+}
+
+function currentSingleQuantity() {
+  const input = document.getElementById('singleQty');
+  const n = parseInt(input && input.value, 10);
+  if (!Number.isFinite(n)) return SINGLE_QTY_MIN;
+  return Math.min(SINGLE_QTY_MAX, Math.max(SINGLE_QTY_MIN, n));
+}
+
+// commit=true rewrites the field (blur, stepper, checkout). While typing, an
+// empty box is left alone so "12" can be entered without snapping back to 1.
+function syncSingleQty(commit) {
+  const input = document.getElementById('singleQty');
+  const raw = parseInt(input && input.value, 10);
+  const invalid = !Number.isFinite(raw);
+  const n = invalid ? SINGLE_QTY_MIN : Math.min(SINGLE_QTY_MAX, Math.max(SINGLE_QTY_MIN, raw));
+  if (input && (commit || (!invalid && raw !== n))) input.value = String(n);
+  const total = document.getElementById('singleQtyTotal');
+  if (total) {
+    const dollars = (n * SINGLE_UNIT_CENTS / 100).toFixed(2);
+    total.textContent = n === 1
+      ? 'CA$5.99 before tax'
+      : (n + ' \u00d7 CA$5.99 = CA$' + dollars + ' before tax');
+  }
+  const btn = document.querySelector('[data-checkout="single"]');
+  if (btn && !btn.disabled) {
+    btn.textContent = n === 1 ? 'Buy Single Report' : ('Buy ' + n + ' Single Reports');
+  }
+  return n;
+}
+
+function changeSingleQty(delta) {
+  const input = document.getElementById('singleQty');
+  if (!input) return;
+  input.value = String(currentSingleQuantity() + delta);
+  syncSingleQty(true);
 }
 
 async function selectPlan(plan) {
@@ -1060,7 +1275,7 @@ async function selectPlan(plan) {
       currentUser.plan = d.plan || plan;
       localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
       highlightSelectedPlan();
-      if (plan === 'free') { showPage('sessions'); toast('You\u2019re on Free. Upload a session to get your report.', 'success'); }
+      if (plan === 'free') { showPage('sessions'); toast('You\u2019re on Free. Your first session is included — upload a file to save it and get the PDF.', 'success'); }
       else toast('Saved.', 'success');
     } else { toast(d.error || 'Could not save plan', 'error'); }
   } catch { toast('Cannot reach server', 'error'); }
@@ -1076,7 +1291,9 @@ function takeAfterLoginPage(fallback) {
 
 // Paid products go through the backend, which creates a hosted Lemon Squeezy
 // checkout for the signed-in rider (POST /api/checkout/:product -> { url }).
-// Backend products: single | event | season. There is no Pro product yet.
+// Backend products: single | event | season. Single accepts { quantity }.
+// Event and Season are one-time (quantity is not sent). The in-person Special
+// Event Bundle is not a product and must not be passed here.
 const CHECKOUT_PRODUCTS = ['single', 'event', 'season'];
 async function buyPlan(product, btn) {
   if (!CHECKOUT_PRODUCTS.includes(product)) { toast('That plan is not available yet.', 'info'); return; }
@@ -1086,11 +1303,13 @@ async function buyPlan(product, btn) {
     toast('Sign in or create an account to buy', 'info');
     return;
   }
+  const body = {};
+  if (product === 'single') body.quantity = syncSingleQty(true);
   const label = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout\u2026'; }
   try {
     const r = await fetch(API + '/api/checkout/' + encodeURIComponent(product), {
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(body)
     });
     const d = await r.json().catch(() => ({}));
     if (r.status === 401) { clearAuth(); showPage('auth'); toast('Your session expired. Sign in again to buy.', 'info'); return; }
@@ -1098,7 +1317,11 @@ async function buyPlan(product, btn) {
     if (r.status === 503) { toast(d.error || 'Payments are not configured yet. Check back soon.', 'info', 5000); return; }
     toast(d.error || 'Could not start checkout. Please try again.', 'error');
   } catch { toast('Cannot reach server', 'error'); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = label; } }
+  finally {
+    if (btn) btn.disabled = false;
+    if (product === 'single') syncSingleQty(true);
+    else if (btn) btn.textContent = label;
+  }
 }
 
 // Back from Lemon Squeezy (?checkout=success): refresh the rider so new credits
@@ -1115,6 +1338,7 @@ async function handleCheckoutReturn() {
         const d = await r.json();
         if (d.rider) { persistAuth(authToken, Object.assign({}, currentUser || {}, d.rider)); }
       }
+      await refreshEntitlement();
     } catch {}
     await new Promise(res => setTimeout(res, 2500));
   }
@@ -1362,7 +1586,7 @@ async function doSetPassword() {
       persistAuth(d.token, d.rider);
       cleanAuthUrl();
       showPage('sessions');
-      toast('Account activated! Welcome, ' + d.rider.firstName + '! Upload a session to get your free report.', 'success', 5000);
+      toast('Account activated! Welcome, ' + d.rider.firstName + '! Your first session is free — upload a file to save it and get the PDF.', 'success', 5000);
     } else { toast(d.error || 'Could not set password', 'error'); }
   } catch { toast('Cannot reach server', 'error'); }
 }
@@ -1600,7 +1824,7 @@ async function handleOAuthReturn(params) {
       // New riders start on their sessions with one free report credit.
       // Plans stay one click away in the account menu (Membership).
       showPage('sessions');
-      toast('Welcome, ' + (d.rider.firstName || 'rider') + '! Upload a session to get your free report.', 'success', 5000);
+      toast('Welcome, ' + (d.rider.firstName || 'rider') + '! Your first session is free — upload a file to save it and get the PDF.', 'success', 5000);
     } else {
       showPage(takeAfterLoginPage('sessions'));
       toast('Welcome back, ' + (d.rider.firstName || 'rider') + '!', 'success');
@@ -1727,8 +1951,8 @@ function dayReportButton(date) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn btn-secondary btn-sm';
-  btn.title = 'Download Day Progress PDF';
-  btn.textContent = '⬇ Day';
+  btn.title = 'Daily progress summary: compare all your sessions from the same day';
+  btn.textContent = '⬇ Daily summary';
   btn.dataset.action = 'day-report';
   btn.dataset.date = date || '';
   return btn;
@@ -1758,7 +1982,6 @@ function sessionRow(s) {
   const lapsCell = document.createElement('td');
   lapsCell.appendChild(lapBadge(s.lapCount || s.analysisData?.laps?.length));
   const action = document.createElement('td');
-  action.appendChild(dayReportButton(sessionDateKey(s) || ''));
   const when = sessionDateKey(s);
   tr.append(
     td(when ? new Date(when + 'T12:00:00').toLocaleDateString() : (s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—')),
@@ -1879,15 +2102,35 @@ dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.
 async function handleFileSelect(file) {
   if (!file) return;
   const text = await file.text();
+  currentSavedSessionId = null;
   dropZone.querySelector('h3').textContent = '⏳ Analysing ' + file.name + '...';
 
   try {
+    if (authToken) await refreshEntitlement();
+    if (generationBlocked()) {
+      openPaywall({ code: 'out_of_credits', paywall: true }, 'analyze');
+      dropZone.querySelector('h3').textContent = 'Drop your CSV or GPX here';
+      return;
+    }
     const form = new FormData();
     form.append('file', new Blob([text], { type: 'text/csv' }), file.name);
     const r = await apiFetch('/api/analyze', { method: 'POST', body: form,
       headers: authToken ? { 'Authorization': 'Bearer ' + authToken } : {} });
-    const d = await r.json();
+    if (r.status === 402) {
+      openPaywall(await readBody(r), 'analyze');
+      dropZone.querySelector('h3').textContent = 'Drop your CSV or GPX here';
+      return;
+    }
+    if (r.status === 401) {
+      showPage('auth');
+      toast('Please sign in to analyse a session', 'info');
+      dropZone.querySelector('h3').textContent = 'Drop your CSV or GPX here';
+      return;
+    }
+    const d = await readBody(r);
+    if (!r.ok) throw new Error(d.error || ('Analysis failed (' + r.status + ')'));
     const analysis = d.data || d;
+    if (!analysis || typeof analysis !== 'object') throw new Error('Analysis failed');
     currentAnalysis = { ...analysis, fileName: file.name, rawText: text };
     renderUploadResult(analysis, file.name);
   } catch (err) {
@@ -1959,6 +2202,39 @@ function renderCoaching(a, containerId) {
 // The backend has returned this field as an ISO string, a 'YYYY-MM-DD' string,
 // and a numeric epoch (ms) depending on the build. Calling .slice() on a
 // number throws, which used to wipe the whole sessions table.
+// Calendar day for a save. A YYYY-MM-DD prefix is kept as written so an evening
+// timestamp is not moved to the next day through UTC. Epochs use the local
+// calendar. The backend charges Event and Season passes against this day.
+function calendarDay(value) {
+  if (value == null || value === '') return null;
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return null;
+    return value.getFullYear() + '-' + String(value.getMonth() + 1).padStart(2, '0') + '-' + String(value.getDate()).padStart(2, '0');
+  }
+  if (typeof value === 'number' || (typeof value === 'string' && /^\d+(\.\d+)?$/.test(String(value).trim()))) {
+    const d = new Date(Number(value));
+    return isNaN(d.getTime()) ? null : calendarDay(d);
+  }
+  if (typeof value === 'string') {
+    const t = value.trim();
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+    if (m) {
+      const y = +m[1], mo = +m[2], d = +m[3];
+      const dt = new Date(y, mo - 1, d);
+      if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+      return m[1] + '-' + m[2] + '-' + m[3];
+    }
+    const parsed = new Date(t);
+    return isNaN(parsed.getTime()) ? null : calendarDay(parsed);
+  }
+  return null;
+}
+
+function sessionDayForSave(analysis) {
+  const summary = analysis && analysis.summary;
+  return calendarDay(summary && summary.sessionDate) || calendarDay(new Date());
+}
+
 function sessionDateKey(s) {
   if (!s) return null;
   const raw = s.date || (s.analysisData && s.analysisData.summary && s.analysisData.summary.sessionDate);
@@ -1976,10 +2252,28 @@ function sessionDateKey(s) {
   return null;
 }
 
-// Download Day Progress PDF for a given date.
+// New entitlement uses dayReport.minimumSessions (2). Older responses omit it.
+function daySummaryMinimum() {
+  const raw = currentEntitlement && currentEntitlement.dayReport && currentEntitlement.dayReport.minimumSessions;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 2;
+}
+
+function daySummaryNeedsMoreMessage(d) {
+  d = d || {};
+  const count = Number(d.sessionCount);
+  const minRaw = Number(d.minimumSessions);
+  const need = Number.isFinite(minRaw) && minRaw > 0 ? minRaw : daySummaryMinimum();
+  const have = Number.isFinite(count) ? count : 0;
+  return 'A daily progress summary compares all your sessions from the same day. This day has ' +
+    have + (have === 1 ? ' session' : ' sessions') + ' and needs ' + need + ' or more.';
+}
+
+// Download the daily progress summary for a date.
 async function downloadDayReport(date) {
   if (!date) { toast('No date found for this session', 'error'); return; }
-  const btn = event?.target;
+  const btn = event?.target && event.target.closest ? (event.target.closest('button') || event.target) : event?.target;
+  const label = btn ? btn.textContent : '';
   if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   try {
     const r = await fetch(API + '/api/sessions/day-report', {
@@ -1991,20 +2285,34 @@ async function downloadDayReport(date) {
         bikeName: currentUser?.bikes || ''
       })
     });
-    if (r.status === 404) {
-      toast('Day Progress PDF is not available on this server yet — use the per-session PDF report.', 'info', 5000);
+    if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
+    if (r.ok) {
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: `MotoTrackIQ-DayProgress-${date}.pdf` });
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Daily progress summary downloaded', 'success');
       return;
     }
-    if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
-    if (!r.ok) { const err = await r.json().catch(()=>({})); toast(err.error || 'Download failed', 'error'); return; }
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), { href: url, download: `MotoTrackIQ-DayProgress-${date}.pdf` });
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('Day Progress PDF downloaded', 'success');
+    const err = await readBody(r);
+    // 400 paywall:false — the pass is fine; this day does not have enough sessions.
+    // An older server used 404 when the date had no sessions.
+    if (err.code === 'day_report_needs_multiple_sessions') {
+      toast(daySummaryNeedsMoreMessage(err), 'info', 6500);
+      return;
+    }
+    if (r.status === 402 || err.paywall === true || err.code === 'day_report_not_included') {
+      openPaywall(err, 'day-report');
+      return;
+    }
+    if (r.status === 404) {
+      toast('The daily progress summary is not available on this server yet — use the per-session PDF report.', 'info', 5000);
+      return;
+    }
+    toast(err.error || err.message || 'Download failed', 'error');
   } catch(e) { toast('Download failed: ' + e.message, 'error'); }
-  finally { if (btn) { btn.textContent = '⬇ Day'; btn.disabled = false; } }
+  finally { if (btn) { btn.textContent = label; btn.disabled = false; } }
 }
 
 // Load day progress data for today and render a banner if 2+ sessions exist on the same day.
@@ -2018,7 +2326,7 @@ async function loadDayProgress(sessions) {
     byDate[d].push(s);
   });
 
-  const multiDates = Object.entries(byDate).filter(([, ss]) => ss.length >= 2);
+  const multiDates = Object.entries(byDate).filter(([, ss]) => ss.length >= daySummaryMinimum());
 
   // Render banner for most recent multi-session day
   const banner = document.getElementById('dayProgressBanner');
@@ -2070,6 +2378,25 @@ async function loadDayProgress(sessions) {
   }
 }
 
+function renderThroughTheDay(parent, through) {
+  const steps = through && Array.isArray(through.steps) ? through.steps : [];
+  const comparable = steps.filter((step) => step && step.deltaFromPrevious != null && !isNaN(+step.deltaFromPrevious));
+  if (!comparable.length) return;
+  const list = document.createElement('div');
+  list.style.cssText = 'margin-top:8px;font-size:13px;line-height:1.45;';
+  comparable.forEach((step) => {
+    const delta = Number(step.deltaFromPrevious);
+    const faster = delta < 0;
+    const row = document.createElement('div');
+    row.style.color = faster ? 'var(--green)' : 'var(--muted)';
+    const who = step.name ? ' · ' + step.name : '';
+    row.textContent = 'Session ' + (step.order || '') + who + ': ' + Math.abs(delta).toFixed(2) + 's ' +
+      (faster ? 'faster' : 'slower') + ' than the previous session';
+    list.appendChild(row);
+  });
+  parent.appendChild(list);
+}
+
 function renderDayProgressBanner(banner, d) {
   banner.replaceChildren();
   const card = document.createElement('div');
@@ -2082,7 +2409,11 @@ function renderDayProgressBanner(banner, d) {
 
   const kicker = document.createElement('div');
   kicker.style.cssText = 'font-size:.75rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px;';
-  kicker.textContent = 'Day Progress · ' + d.label + ' · ' + d.sessions2.length + ' sessions';
+  kicker.textContent = 'Daily progress summary · ' + d.label + ' · ' + d.sessions2.length + ' sessions';
+
+  const compare = document.createElement('div');
+  compare.style.cssText = 'font-size:13px;color:var(--text);margin-bottom:6px;';
+  compare.textContent = 'Compare all your sessions from this day.';
 
   const headline = document.createElement('div');
   headline.style.cssText = 'font-size:1.5rem;font-weight:800;margin-bottom:6px;';
@@ -2110,7 +2441,9 @@ function renderDayProgressBanner(banner, d) {
   }
   meta.append(document.createTextNode('   ·   ' + d.totalLaps + ' laps   ·   ' + Math.round(d.maxSpeed) + ' km/h top speed'));
 
-  left.append(kicker, headline, meta);
+  left.append(kicker, compare, headline, meta);
+  const through = d.progress && d.progress.summary && d.progress.summary.throughTheDay;
+  if (through) renderThroughTheDay(left, through);
   if (d.progress && Array.isArray(d.progress.notes) && d.progress.notes.length) {
     const notes = document.createElement('div');
     notes.style.cssText = 'margin-top:8px;font-size:12px;color:var(--muted);';
@@ -2128,7 +2461,7 @@ function renderDayProgressBanner(banner, d) {
   btn.type = 'button';
   btn.className = 'btn btn-primary btn-sm';
   btn.style.flexShrink = '0';
-  btn.textContent = '⬇ Day Progress PDF';
+  btn.textContent = '⬇ Daily progress summary';
   btn.addEventListener('click', () => downloadDayReport(d.topDate));
 
   row.append(left, btn);
@@ -2204,7 +2537,6 @@ function renderDayGroups(tbody, multiDates) {
       childBadge.textContent = lapCount + ' laps';
       childLaps.appendChild(childBadge);
       const childAction = document.createElement('td');
-      childAction.appendChild(dayReportButton(date));
       child.append(
         when,
         td(s.track || '—'),
@@ -2229,22 +2561,35 @@ function toggleDayGroup(date) {
 async function saveSession() {
   if (!currentAnalysis) return;
   if (!currentUser) { toast('Sign in to save sessions', 'info'); showPage('auth'); return; }
+  if (currentSavedSessionId) {
+    toast('This session is already saved. Downloading the PDF again is free.', 'info');
+    return;
+  }
   const btn = event?.target;
   if (btn) { btn.textContent = '⏳ Saving...'; btn.disabled = true; }
   try {
+    if (authToken) await refreshEntitlement();
+    if (generationBlocked()) {
+      openPaywall({ code: 'out_of_credits', paywall: true }, 'save');
+      return;
+    }
+    const sessionDay = sessionDayForSave(currentAnalysis);
     const r = await fetch(API + '/api/sessions', {
       method: 'POST', headers: authHeaders(),
       body: JSON.stringify({
         track: currentAnalysis.summary?.trackName || 'Session',
-        date: currentAnalysis.summary?.sessionDate || new Date().toISOString(),
+        date: sessionDay,
         csvContent: currentAnalysis.rawText || ''
       })
     });
     if (r.status === 401) { toast('Please sign in again', 'error'); showPage('auth'); return; }
-    const d = await r.json();
+    const d = await readBody(r);
+    if (r.status === 402) { openPaywall(d, 'save'); return; }
     if (r.ok && d.session) {
-      // Check if this is now part of a multi-session day
-      const newDate = d.session.date || new Date().toISOString().slice(0, 10);
+      currentSavedSessionId = d.session.id;
+      if (d.entitlement) applyEntitlement(d.entitlement);
+      else rememberCredits(d.reportCredits);
+      const newDate = calendarDay(d.session.date) || sessionDay;
       // Re-fetch sessions to count same-day sessions
       let sameDayCount = 1;
       try {
@@ -2255,10 +2600,11 @@ async function saveSession() {
         }
       } catch(_) {}
       if (sameDayCount >= 2) {
-        toast(`Session saved! You now have ${sameDayCount} sessions today. Ready for Day Progress! 🏍️`, 'success');
+        toast('Session saved! You now have ' + sameDayCount + ' sessions today. Your daily progress summary can compare them.', 'success');
       } else {
         toast('Session saved to your account! 🏍️', 'success');
       }
+      if (d.askReview) setTimeout(openReview, 900);
     } else {
       toast(d.error || 'Could not save session', 'error');
     }
@@ -2269,100 +2615,239 @@ async function saveSession() {
   }
 }
 
+async function readBody(res) {
+  try { return await res.json(); } catch { return {}; }
+}
+
+function rememberCredits(value) {
+  if (!currentUser || value == null || value === '' || isNaN(+value)) return;
+  currentUser.reportCredits = +value;
+  localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
+  // Flexible balance only. Do not recompute canGenerate from it — an Event
+  // or Season pass can still pay when this number is 0.
+  if (currentEntitlement) {
+    currentEntitlement.reportCredits = +value;
+    renderAccountCredits();
+  }
+}
+
+function savePdfBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function absoluteApiUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = String(API || '').replace(/\/+$/, '');
+  if (!base) return url;
+  return base + (url.charAt(0) === '/' ? url : '/' + url);
+}
+
+// Free re-download of a saved session (GET /api/sessions/:id/report-link).
+// The signed URL does not spend a credit. 'missing' means that route is not
+// on this backend yet, so the caller may fall back to the older generator.
+// Returns 'ok' | 'paywall' | 'auth' | 'missing' | 'fail'.
+async function downloadFreeReport(sessionId) {
+  let r;
+  try {
+    r = await apiFetch('/api/sessions/' + encodeURIComponent(sessionId) + '/report-link', { headers: authHeaders() });
+  } catch {
+    return 'fail';
+  }
+  if (r.status === 402) { openPaywall(await readBody(r), 'report'); return 'paywall'; }
+  if (r.status === 401) return 'auth';
+  if (r.status === 404) return 'missing';
+  if (!r.ok) return 'fail';
+  const d = await readBody(r);
+  const url = absoluteApiUrl(d.url || d.link || d.href || '');
+  if (!url) return 'fail';
+  try {
+    const pdf = await fetch(url);
+    if (pdf.status === 402) { openPaywall(await readBody(pdf), 'report'); return 'paywall'; }
+    if (!pdf.ok) return 'fail';
+    savePdfBlob(await pdf.blob(), 'MotoTrackIQ-Report.pdf');
+    return 'ok';
+  } catch {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return 'ok';
+  }
+}
+
+// Older generator (POST /api/report or POST /api/sessions/:id/report). A 402
+// opens the paywall. Credits may be in a header (older) or absent (newer).
+async function deliverPaidPdf(r) {
+  if (r.status === 402) { openPaywall(await readBody(r), 'report'); return 'paywall'; }
+  if (r.status === 401) return 'auth';
+  if (!r.ok) return 'fail';
+  const askReview = r.headers.get('X-Ask-Review') === '1';
+  rememberCredits(r.headers.get('X-Report-Credits-Remaining'));
+  savePdfBlob(await r.blob(), 'MotoTrackIQ-Report.pdf');
+  if (askReview) setTimeout(openReview, 900);
+  return 'ok';
+}
+
 async function downloadPDF() {
   if (!currentAnalysis) return;
-  const btn = event.target;
-  btn.textContent = '⏳ Generating...'; btn.disabled = true;
+  const btn = event && event.target;
+  if (btn) { btn.textContent = '⏳ Generating...'; btn.disabled = true; }
   try {
+    // Already saved: this click is a re-download and should not spend a credit.
+    if (currentSavedSessionId) {
+      const via = await downloadFreeReport(currentSavedSessionId);
+      if (via === 'ok') { toast('PDF downloaded. Re-downloads are free.'); return; }
+      if (via === 'paywall' || via === 'auth') {
+        if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); }
+        return;
+      }
+      if (via === 'fail') { toast('Could not download the saved report. Try again.', 'error'); return; }
+    }
     const form = new FormData();
     form.append('file', new Blob([currentAnalysis.rawText||''], { type: 'text/csv' }), 'session.csv');
     form.append('riderName', currentUser?.firstName || 'Rider');
-    // Authed + credit-gated: send the token so the server can meter credits.
     let r = await apiFetch('/api/report', { method: 'POST', headers: authToken ? { 'Authorization': 'Bearer ' + authToken } : {}, body: form });
-    // Legacy backend compatibility: /api/report does not exist there (404).
-    // Fall back to save-then-generate via POST /api/sessions/:id/report.
+    // Very old backends have no /api/report. Save (the credit), then prefer the
+    // free report link. Only the missing-link case falls through to the generator.
     if (r.status === 404) {
       const saveR = await apiFetch('/api/sessions', {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({
           track: currentAnalysis.summary?.trackName || 'Session',
-          date: currentAnalysis.summary?.sessionDate || new Date().toISOString(),
+          date: sessionDayForSave(currentAnalysis),
           csvContent: currentAnalysis.rawText || ''
         })
       });
-      const saveD = await saveR.json().catch(() => ({}));
-      if (saveR.ok && saveD.session && saveD.session.id) {
-        r = await apiFetch('/api/sessions/' + saveD.session.id + '/report', { method: 'POST', headers: authHeaders() });
+      const saveD = await readBody(saveR);
+      if (saveR.status === 402) { openPaywall(saveD, 'save'); return; }
+      if (saveR.status === 401) { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
+      if (!(saveR.ok && saveD.session && saveD.session.id)) {
+        toast(saveD.error || 'Could not save session', 'error');
+        return;
       }
+      currentSavedSessionId = saveD.session.id;
+      if (saveD.entitlement) applyEntitlement(saveD.entitlement);
+      else rememberCredits(saveD.reportCredits);
+      const via = await downloadFreeReport(saveD.session.id);
+      if (via === 'ok') { toast('PDF downloaded.'); return; }
+      if (via === 'paywall') return;
+      if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
+      if (via === 'fail') { toast('Session saved, but the PDF did not download. Open it from My Sessions.', 'error'); return; }
+      r = await apiFetch('/api/sessions/' + encodeURIComponent(saveD.session.id) + '/report', { method: 'POST', headers: authHeaders() });
     }
-    if (r.status === 402) {
-      let d = {}; try { d = await r.json(); } catch {}
-      openPaywall(d);
-      btn.textContent = '⬇ Download PDF'; btn.disabled = false;
-      return;
-    }
-    if (r.status === 401) { showPage('auth'); toast('Please sign in to download reports', 'info'); btn.textContent = '⬇ Download PDF'; btn.disabled = false; return; }
-    if (!r.ok) throw new Error(r.status);
-    const askReview = r.headers.get('X-Ask-Review') === '1';
-    const remaining = r.headers.get('X-Report-Credits-Remaining');
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'MotoTrackIQ-Report.pdf';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    toast('PDF downloaded!');
-    if (currentUser && remaining !== null && !isNaN(+remaining)) {
-      currentUser.reportCredits = +remaining;
-      localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
-    }
-    if (askReview) setTimeout(openReview, 900);
-  } catch { toast('PDF generation failed', 'error'); }
-  btn.textContent = '⬇ Download PDF'; btn.disabled = false;
+    const via = await deliverPaidPdf(r);
+    if (via === 'ok') toast('PDF downloaded!');
+    else if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); }
+    else if (via === 'fail') toast('PDF generation failed', 'error');
+  } catch {
+    toast('PDF generation failed', 'error');
+  } finally {
+    if (btn) { btn.textContent = '⬇ Download PDF'; btn.disabled = false; }
+  }
 }
 
 async function downloadSessionPDF() {
   if (!currentSessionId) return;
-  toast('Generating PDF...', 'info');
+  toast('Preparing PDF...', 'info');
   try {
-    const r = await apiFetch('/api/sessions/' + currentSessionId + '/report', { method: 'POST', headers: authHeaders() });
-    // Credit-gated: 402 means the rider is out of report credits → show paywall.
-    if (r.status === 402) {
-      let d = {}; try { d = await r.json(); } catch {}
-      openPaywall(d);
-      return;
-    }
-    if (r.status === 401) { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
-    if (!r.ok) throw new Error(r.status);
-    // Capture review-ask + remaining-credit signals before consuming the body.
-    const askReview = r.headers.get('X-Ask-Review') === '1';
-    const remaining = r.headers.get('X-Report-Credits-Remaining');
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'MotoTrackIQ-Report.pdf';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    toast('PDF downloaded!');
-    // Keep the in-memory user's credit count fresh so the UI reflects reality.
-    if (currentUser && remaining !== null && !isNaN(+remaining)) {
-      currentUser.reportCredits = +remaining;
-      localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
-    }
-    // After the FIRST successful report, invite a review (not a bribe — just an ask).
-    if (askReview) setTimeout(openReview, 900);
-  } catch { toast('PDF generation failed — check backend', 'error'); }
+    const via = await downloadFreeReport(currentSessionId);
+    if (via === 'ok') { toast('PDF downloaded. Re-downloads are free.'); return; }
+    if (via === 'paywall') return;
+    if (via === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); return; }
+    if (via === 'fail') { toast('Could not download the saved report. Try again.', 'error'); return; }
+    const r = await apiFetch('/api/sessions/' + encodeURIComponent(currentSessionId) + '/report', { method: 'POST', headers: authHeaders() });
+    const paid = await deliverPaidPdf(r);
+    if (paid === 'ok') toast('PDF downloaded!');
+    else if (paid === 'auth') { showPage('auth'); toast('Please sign in to download reports', 'info'); }
+    else if (paid === 'fail') toast('PDF generation failed — check backend', 'error');
+  } catch {
+    toast('PDF generation failed — check backend', 'error');
+  }
 }
 
-// ── Paywall + Promo + Review ───────────────────────────────────────
-function openPaywall(d) {
+// 402 codes from the pass-based backend, plus the older "out of tokens" body
+// that has no code. reportCredits in the body is the flexible Single balance
+// and is not what decides the dialog.
+const PAYWALL_COPY = {
+  out_of_credits: {
+    title: "You're out of session credits",
+    message: 'One credit covers one session (save + PDF). Re-downloads are free. A Single Report, an Event Pass, or a Season Pass adds more.'
+  },
+  daily_session_cap: {
+    title: '6 sessions already saved today',
+    message: 'This Season Pass allows 6 sessions on one event day. An Event Pass or a Single Report covers another session today.'
+  },
+  season_days_exhausted: {
+    title: 'All 8 event days are used',
+    message: 'This Season Pass covers 8 event days. An Event Pass or a Single Report covers another day.'
+  },
+  session_date_required: {
+    title: 'This save needs a session date',
+    message: 'A Season Pass needs the session date before it can be used.'
+  },
+  day_report_not_included: {
+    title: 'Daily progress summary',
+    message: 'The daily progress summary compares all your sessions from the same day. It comes with an Event Pass or a Season Pass.'
+  }
+};
+
+function noteEntitlementFromPaywall(d) {
+  if (!d || typeof d !== 'object') return;
+  if (d.canGenerate == null && d.dayReport == null && d.reportCredits == null && !d.passes) return;
+  applyEntitlement(d.entitlement && typeof d.entitlement === 'object' ? d.entitlement : d);
+}
+
+function openPaywall(d, source) {
   d = d || {};
-  // Reset to the out-of-credits framing (openPromo may have changed these).
+  if (d.code === 'day_report_needs_multiple_sessions') {
+    toast(daySummaryNeedsMoreMessage(d), 'info', 6500);
+    return;
+  }
+  noteEntitlementFromPaywall(d);
+  const code = typeof d.code === 'string' ? d.code : '';
+  const known = PAYWALL_COPY[code];
+  const serverMsg = String(d.message || '').trim();
+  const genericTokens = /^out of tokens\b/i.test(serverMsg);
+  let titleText;
+  let message;
+  if (known) {
+    titleText = known.title;
+    message = (!serverMsg || genericTokens) ? known.message : serverMsg;
+  } else {
+    const blob = [serverMsg, d.error, d.reason, d.feature].filter(Boolean).join(' ').toLowerCase();
+    const mentionsDay = /day/.test(blob) && /report|plan|pass|included|progress/.test(blob);
+    const mentionsCredits = /token|credit/.test(blob);
+    const day = mentionsDay || (source === 'day-report' && !mentionsCredits);
+    titleText = day ? 'Daily progress summary' : "You're out of session credits";
+    message = serverMsg || (day
+      ? PAYWALL_COPY.day_report_not_included.message
+      : PAYWALL_COPY.out_of_credits.message);
+  }
   const title = document.getElementById('paywallTitle');
-  if (title) title.textContent = "You've used your free report";
-  document.getElementById('paywallMsg').textContent = d.message ||
-    'Unlock more reports with a plan, or enter a promo code to add a free report to your account.';
+  if (title) title.textContent = titleText;
+  document.getElementById('paywallMsg').textContent = message;
+  const plans = document.getElementById('paywallPlans');
+  if (plans) plans.style.display = '';
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
 }
-function closePaywall() { document.getElementById('paywallOverlay').classList.remove('open'); }
+function closePaywall() {
+  document.getElementById('paywallOverlay').classList.remove('open');
+  const plans = document.getElementById('paywallPlans');
+  if (plans) plans.style.display = '';
+}
 
 // Open the promo modal voluntarily (from the account menu) — reuses the paywall
 // modal but with promo-first framing so it doesn't imply the rider is out of credits.
@@ -2371,7 +2856,9 @@ function openPromo() {
   const title = document.getElementById('paywallTitle');
   const msg = document.getElementById('paywallMsg');
   if (title) title.textContent = 'Redeem a promo code';
-  if (msg) msg.textContent = 'Have a promo code? Enter it below to add report credits to your account.';
+  if (msg) msg.textContent = 'Have a promo code? Enter it below to add session credits. One credit covers one session (save + PDF). Re-downloads are free.';
+  const plans = document.getElementById('paywallPlans');
+  if (plans) plans.style.display = '';
   document.getElementById('promoResult').textContent = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('paywallOverlay').classList.add('open');
@@ -2398,13 +2885,16 @@ async function redeemPromo() {
       return;
     }
     if (r.ok && d.success !== false) {
-      const credits = (d.entitlement && d.entitlement.reportCredits != null) ? d.entitlement.reportCredits : (d.reportCredits ?? d.credits ?? null);
-      if (currentUser && credits !== null) {
-        currentUser.reportCredits = credits;
-        localStorage.setItem('mtiq_user', JSON.stringify(currentUser));
+      if (d.entitlement) applyEntitlement(d.entitlement);
+      else {
+        const credits = (d.reportCredits != null) ? d.reportCredits : (d.credits != null ? d.credits : null);
+        rememberCredits(credits);
       }
+      const credits = currentEntitlement && currentEntitlement.reportCredits != null
+        ? currentEntitlement.reportCredits
+        : (d.reportCredits != null ? d.reportCredits : (d.credits != null ? d.credits : null));
       result.style.color = '#22c55e';
-      result.textContent = d.message || ('Code applied! ' + (credits !== null ? credits + ' report credit(s) available.' : 'Credit added.'));
+      result.textContent = d.message || ('Code applied! ' + (credits !== null ? credits + ' session credit(s) available.' : 'Credit added.'));
       toast('Promo code applied 🎉', 'success');
       // Close the paywall shortly and let the rider retry their download.
       setTimeout(() => { closePaywall(); toast('Tap Download PDF again to get your report', 'info', 4500); }, 1400);
@@ -2785,6 +3275,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadOAuthProviders();
   renderPlanPrices();
   checkUrlReset();
+  if (authToken) refreshEntitlement();
 });
 </script>
 </body>
